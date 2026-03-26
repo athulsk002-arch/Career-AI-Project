@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Assessment</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #1a1a2e;
+        }
+        .hidden { display: none; }
+
+        .container { max-width: 680px; margin: 0 auto; }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .role-badge {
+            display: inline-block;
+            background: #ede9fe;
+            color: #4f46e5;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: capitalize;
+        }
+
+        .timer-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 8px 16px;
+        }
+
+        .timer-display {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            min-width: 48px;
+        }
+
+        .timer-display.warning { color: #f59e0b; }
+        .timer-display.danger  { color: #ef4444; }
+
+        .progress-wrap { margin-bottom: 24px; }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #4f46e5;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .q-dots {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .q-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            transition: background 0.2s;
+        }
+
+        .q-dot.answered { background: #4f46e5; }
+        .q-dot.current  { background: #818cf8; }
+
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 28px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .q-number {
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .q-text {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1a1a2e;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .options { display: flex; flex-direction: column; gap: 10px; }
+
+        .option-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.4;
+        }
+
+        .option-label:hover { border-color: #4f46e5; background: #f5f3ff; }
+
+        .option-label input[type="radio"] { display: none; }
+
+        .option-label.selected {
+            border-color: #4f46e5;
+            background: #ede9fe;
+            color: #3730a3;
+            font-weight: 500;
+        }
+
+        .option-key {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            font-size: 12px;
+            font-weight: 700;
+            color: #6b7280;
+            flex-shrink: 0;
+        }
+
+        .option-label.selected .option-key { background: #4f46e5; color: #fff; }
+
+        .nav-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary { background: #4f46e5; color: #fff; }
+        .btn-primary:hover { background: #4338ca; }
+        .btn-primary:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+        .btn-ghost {
+            background: transparent;
+            color: #6b7280;
+            border: 1.5px solid #e5e7eb;
+        }
+
+        .skip-text {
+            font-size: 13px;
+            color: #9ca3af;
+            cursor: pointer;
+            text-decoration: underline;
+            background: none;
+            border: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div class="container">
+
+{% if loading %}
+    <div class="card loading">
+        <div class="loading-spinner"></div>
+        <p>Generating your assessment questions...</p>
+        <p style="font-size:13px;color:#9ca3af;margin-top:6px;">This takes a few seconds</p>
+    </div>
+{% else %}
+
+    <div class="top-bar">
+        <span class="role-badge">{{ role }}</span>
+        <div class="timer-wrap">
+            <span>⏱</span>
+            <span class="timer-display" id="timer">{{ time_limit }}</span>
+        </div>
+    </div>
+
+    <div class="progress-wrap">
+        <div class="progress-info">
+            <span>Question <strong id="q-label">1</strong> of {{ questions | length }}</span>
+            <span id="answered-count">0 answered</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="q-dots">
+            {% for q in questions %}
+                <div class="q-dot {% if loop.index0 == 0 %}current{% endif %}" id="dot-{{ loop.index0 }}"></div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <form method="POST" action="/assessment" id="assessment-form">
+        <input type="hidden" name="time_taken" id="time-taken" value="0">
+
+        {% for q in questions %}
+        {% set i = loop.index0 %}
+        <div class="card question-card {% if i != 0 %}hidden{% endif %}" id="qcard-{{ i }}">
+            <div class="q-number">Question {{ loop.index }} of {{ questions | length }}</div>
+            <div class="q-text">{{ q.question }}</div>
+            <div class="options">
+                {% for key in ['A', 'B', 'C', 'D'] %}
+                {% if q.options[key] is defined %}
+                <label class="option-label" id="opt-{{ i }}-{{ key }}" data-q="{{ i }}" data-key="{{ key }}">
+                    <input type="radio" name="answer_{{ i }}" value="{{ key }}">
+                    <span class="option-key">{{ key }}</span>
+                    <span>{{ q.options[key] }}</span>
+                </label>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="nav-row">
+         <button type="button" class="btn btn-ghost" id="prev-btn" style="visibility:hidden;">← Previous</button>
+         <button type="button" class="skip-text" id="skip-btn">Skip →</button>
+         <button type="button" class="btn btn-primary" id="next-btn">Next →</button>
+        </div>
+    </form>
+
+{% endif %}
+<div id="assessment-data" 
+     data-total="{{ questions | length }}" 
+     data-time="{{ time_limit_seconds }}">
+</div>
+
+<script>
+    const meta           = document.getElementById('assessment-data');
+    const totalQuestions = parseInt(meta.getAttribute('data-total'));
+    const timeLimit      = parseInt(meta.getAttribute('data-time'));
+    let currentQ         = 0;
+    let answers          = {};
+    let secondsLeft      = timeLimit;
+    let startTimestamp   = Date.now();
+
+    function updateProgress() {
+        const pct = ((currentQ + 1) / totalQuestions * 100);
+        document.getElementById('progress-fill').style.width = pct + '%';
+        document.getElementById('q-label').textContent = currentQ + 1;
+        document.getElementById('answered-count').textContent = Object.keys(answers).length + ' answered';
+        document.getElementById('prev-btn').addEventListener('click', function() { navigate(-1); });
+        document.getElementById('skip-btn').addEventListener('click', function() { navigate(1); });
+
+        for (let i = 0; i < totalQuestions; i++) {
+            const dot = document.getElementById('dot-' + i);
+            if (!dot) continue;
+            dot.className = 'q-dot';
+            if (answers[i] !== undefined) dot.classList.add('answered');
+            else if (i === currentQ)      dot.classList.add('current');
+        }
+
+        document.getElementById('prev-btn').style.visibility = currentQ > 0 ? 'visible' : 'hidden';
+
+        const nextBtn = document.getElementById('next-btn');
+        if (currentQ === totalQuestions - 1) {
+            nextBtn.textContent = 'Submit Assessment →';
+            nextBtn.onclick = submitAssessment;
+        } else {
+            nextBtn.textContent = 'Next →';
+            nextBtn.onclick = function() { navigate(1); };
+        }
+    }
+
+    function selectOption(qIndex, key) {
+        answers[qIndex] = key;
+
+        const radio = document.querySelector('input[name="answer_' + qIndex + '"][value="' + key + '"]');
+        if (radio) radio.checked = true;
+
+        document.querySelectorAll('#qcard-' + qIndex + ' .option-label').forEach(function(el) {
+            el.classList.remove('selected');
+        });
+        const selected = document.getElementById('opt-' + qIndex + '-' + key);
+        if (selected) selected.classList.add('selected');
+
+        updateProgress();
+
+        if (qIndex < totalQuestions - 1) {
+            setTimeout(function() { navigate(1); }, 400);
+        }
+    }
+
+    function navigate(dir) {
+        document.getElementById('qcard-' + currentQ).style.display = 'none';
+        currentQ = Math.max(0, Math.min(totalQuestions - 1, currentQ + dir));
+        document.getElementById('qcard-' + currentQ).style.display = 'block';
+        updateProgress();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function submitAssessment() {
+        document.getElementById('time-taken').value = Math.round((Date.now() - startTimestamp) / 1000);
+
+        for (let i = 0; i < totalQuestions; i++) {
+            if (answers[i]) {
+                const radio = document.querySelector('input[name="answer_' + i + '"][value="' + answers[i] + '"]');
+                if (radio) radio.checked = true;
+            }
+        }
+
+        const btn = document.getElementById('next-btn');
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+        document.getElementById('assessment-form').submit();
+    }
+
+    function updateTimer() {
+        const mins = Math.floor(secondsLeft / 60);
+        const secs = secondsLeft % 60;
+        const display = document.getElementById('timer');
+        if (!display) return;
+
+        display.textContent = mins + ':' + String(secs).padStart(2, '0');
+        display.className = 'timer-display';
+        if (secondsLeft <= 60) display.classList.add('warning');
+        if (secondsLeft <= 15) display.classList.add('danger');
+
+        if (secondsLeft <= 0) {
+            clearInterval(timerInterval);
+            submitAssessment();
+            return;
+        }
+        secondsLeft--;
+    }
+
+    const timerInterval = setInterval(updateTimer, 1000);
+    updateTimer();
+    updateProgress();
+// Click handler for options
+    document.addEventListener('click', function(e) {
+        const label = e.target.closest('.option-label');
+        if (!label) return;
+        const q   = parseInt(label.getAttribute('data-q'));
+        const key = label.getAttribute('data-key');
+        selectOption(q, key);
+    });
+
+    // Anti-cheat
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    document.addEventListener('selectstart', function(e) { e.preventDefault(); });
+    document.addEventListener('copy',        function(e) { e.preventDefault(); });
+</script>
+</body>
+</html>

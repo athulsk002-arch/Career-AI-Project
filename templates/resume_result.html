@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analysis Result</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #1a1a2e;
+        }
+
+        .container { max-width: 720px; margin: 0 auto; }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 28px;
+            color: #1a1a2e;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .card h2 {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #6b7280;
+            margin-bottom: 14px;
+        }
+
+        .career-name {
+            font-size: 26px;
+            font-weight: 700;
+            color: #4f46e5;
+            text-transform: capitalize;
+        }
+
+        .career-sub {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 4px;
+            margin-bottom: 14px;
+        }
+
+        .score-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .score-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            background: #4f46e5;
+            border-radius: 4px;
+        }
+
+        .score-pct {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4f46e5;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .match-text {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .skill-tag.detected {
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .skill-tag.missing {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .empty {
+            font-size: 14px;
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        /* Career selection */
+        .recommended-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 16px 20px;
+            background: #4f46e5;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 14px;
+            transition: background 0.2s;
+            text-align: left;
+        }
+
+        .recommended-btn:hover { background: #4338ca; }
+
+        .rec-label {
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.25);
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-right: 10px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0 16px;
+        }
+
+        .divider span {
+            font-size: 13px;
+            color: #9ca3af;
+            white-space: nowrap;
+        }
+
+        .divider hr {
+            flex: 1;
+            border: none;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .careers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        @media (max-width: 500px) { .careers-grid { grid-template-columns: 1fr; } }
+
+        .career-option {
+            width: 100%;
+            padding: 14px 16px;
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .career-option:hover {
+            border-color: #4f46e5;
+            background: #f5f3ff;
+        }
+
+        .co-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            text-transform: capitalize;
+            margin-bottom: 3px;
+        }
+
+        .co-skills {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .bottom-nav {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-outline {
+            flex: 1;
+            min-width: 140px;
+            display: inline-block;
+            padding: 11px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            background: #fff;
+            color: #4f46e5;
+            border: 1.5px solid #4f46e5;
+            transition: background 0.2s;
+        }
+
+        .btn-outline:hover { background: #f5f3ff; }
+
+        .btn-gray {
+            flex: 1;
+            min-width: 140px;
+            display: inline-block;
+            padding: 11px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            background: #fff;
+            color: #6b7280;
+            border: 1.5px solid #e5e7eb;
+            transition: background 0.2s;
+        }
+
+        .btn-gray:hover { background: #f9fafb; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Resume Analysis</h1>
+
+    {% set career_skills_map = {
+        "software developer":   ["python","java","c++","data structures","algorithms","sql","git"],
+        "full stack developer":  ["html","css","javascript","react","node","python","sql","git","flask"],
+        "web developer":         ["html","css","javascript","react","node","flask","sql"],
+        "data analyst":          ["python","sql","excel","pandas","data visualization","statistics"],
+        "cyber security":        ["networking","linux","python","sql injection","penetration testing","cryptography"],
+        "ui/ux designer":        ["figma","ui","ux","wireframing","css","user research","prototyping"]
+    } %}
+
+    {% set required     = career_skills_map.get(career, []) %}
+    {% set matched      = detected_skills | select('in', required) | list %}
+    {% set total_count  = required | length %}
+    {% set match_count  = matched | length %}
+    {% set pct          = ((match_count / total_count * 100) | int) if total_count > 0 else 0 %}
+
+    <!-- Recommended Career -->
+    <div class="card">
+        <h2>Recommended career</h2>
+        <div class="career-name">{{ career }}</div>
+        <div class="career-sub">Based on the skills detected in your resume</div>
+        <div class="score-row">
+            <div class="score-bar-bg">
+                <div class="score-bar-fill" id="career-bar"></div>
+            </div>
+            <span class="score-pct">{{ pct }}%</span>
+        </div>
+        <div class="match-text">{{ match_count }} of {{ total_count }} required skills matched</div>
+    </div>
+
+    <!-- Detected Skills -->
+    <div class="card">
+        <h2>Detected skills ({{ detected_skills | length }})</h2>
+        {% if detected_skills %}
+            <div class="skills-grid">
+                {% for skill in detected_skills %}
+                    <span class="skill-tag detected">{{ skill }}</span>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty">No recognizable skills found. Make sure your resume clearly lists your technical skills.</p>
+        {% endif %}
+    </div>
+
+    <!-- Missing Skills -->
+    <div class="card">
+        <h2>Skills to learn for {{ career }}</h2>
+        {% if missing_skills %}
+            <div class="skills-grid">
+                {% for skill in missing_skills %}
+                    <span class="skill-tag missing">{{ skill }}</span>
+                {% endfor %}
+            </div>
+            <p style="font-size:13px; color:#6b7280; margin-top:14px;">
+                Adding these to your skillset will improve your match score.
+            </p>
+        {% else %}
+            <p class="empty" style="color:#065f46;">You already have all required skills for this role.</p>
+        {% endif %}
+    </div>
+
+    <!-- Career Selection + Start Assessment -->
+    <div class="card">
+        <h2>Start your assessment</h2>
+
+        {% set skill_previews = {
+            "software developer":   "Python, Java, algorithms",
+            "full stack developer":  "React, Node, Flask, SQL",
+            "web developer":         "HTML, CSS, JavaScript",
+            "data analyst":          "SQL, Pandas, statistics",
+            "cyber security":        "Networking, Linux, pen testing",
+            "ui/ux designer":        "Figma, UX, wireframing"
+        } %}
+
+        {% set all_roles = [
+            "software developer",
+            "full stack developer",
+            "web developer",
+            "data analyst",
+            "cyber security",
+            "ui/ux designer"
+        ] %}
+
+        <!-- Recommended role as primary CTA -->
+        <form method="POST" action="/career">
+            <input type="hidden" name="role" value="{{ career }}">
+            <button type="submit" class="recommended-btn">
+                <span>
+                    <span class="rec-label">Recommended</span>
+                    Start as {{ career }}
+                </span>
+                <span>→</span>
+            </button>
+        </form>
+
+        <div class="divider">
+            <hr><span>or choose a different career</span><hr>
+        </div>
+
+        <!-- Other roles grid -->
+        <div class="careers-grid">
+            {% for role in all_roles %}
+                {% if role != career %}
+                <form method="POST" action="/career">
+                    <input type="hidden" name="role" value="{{ role }}">
+                    <button type="submit" class="career-option">
+                        <div class="co-title">{{ role }}</div>
+                        <div class="co-skills">{{ skill_previews.get(role, '') }}</div>
+                    </button>
+                </form>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="bottom-nav">
+            <a href="/resume" class="btn-gray">Analyze another resume</a>
+            <a href="/dashboard" class="btn-outline">Back to dashboard</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.getElementById('career-bar').style.width = '{{ pct }}%';
+</script>
+</body>
+</html>

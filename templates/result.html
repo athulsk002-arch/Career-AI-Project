@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Results</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #1a1a2e;
+        }
+
+        .container { max-width: 720px; margin: 0 auto; }
+
+        /* Header */
+        .header { margin-bottom: 28px; }
+
+        .role-badge {
+            display: inline-block;
+            background: #ede9fe;
+            color: #4f46e5;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: capitalize;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        /* Card */
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+
+        /* Report card */
+        .report-top {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .score-circle.excellent { background: #d1fae5; }
+        .score-circle.good      { background: #dbeafe; }
+        .score-circle.average   { background: #fef3c7; }
+        .score-circle.poor      { background: #fee2e2; }
+
+        .score-circle .score-num {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .score-circle.excellent .score-num { color: #065f46; }
+        .score-circle.good      .score-num { color: #1e40af; }
+        .score-circle.average   .score-num { color: #92400e; }
+        .score-circle.poor      .score-num { color: #991b1b; }
+
+        .score-circle .score-label {
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .score-circle.excellent .score-label { color: #065f46; }
+        .score-circle.good      .score-label { color: #1e40af; }
+        .score-circle.average   .score-label { color: #92400e; }
+        .score-circle.poor      .score-label { color: #991b1b; }
+
+        .report-meta { flex: 1; }
+
+        .rating-pill {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
+
+        .rating-pill.excellent { background: #d1fae5; color: #065f46; }
+        .rating-pill.good      { background: #dbeafe; color: #1e40af; }
+        .rating-pill.average   { background: #fef3c7; color: #92400e; }
+        .rating-pill.poor      { background: #fee2e2; color: #991b1b; }
+
+        .job-ready-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .job-ready-row .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .dot-green  { background: #10b981; }
+        .dot-yellow { background: #f59e0b; }
+        .dot-red    { background: #ef4444; }
+
+        .report-summary {
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.6;
+            padding-top: 16px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        /* Strengths / improvements */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 520px) { .two-col { grid-template-columns: 1fr; } }
+
+        .info-box {
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .info-box.green { background: #f0fdf4; border: 1px solid #bbf7d0; }
+        .info-box.amber { background: #fffbeb; border: 1px solid #fde68a; }
+
+        .info-box .ib-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .info-box.green .ib-label { color: #065f46; }
+        .info-box.amber .ib-label { color: #92400e; }
+
+        .info-box .ib-text {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .info-box.green .ib-text { color: #065f46; }
+        .info-box.amber .ib-text { color: #78350f; }
+
+        /* Interview breakdown */
+        .qa-item {
+            border: 1px solid #f3f4f6;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .qa-item:last-child { margin-bottom: 0; }
+
+        .qa-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .round-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .score-pill {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        .score-pill.high { background: #d1fae5; color: #065f46; }
+        .score-pill.mid  { background: #fef3c7; color: #92400e; }
+        .score-pill.low  { background: #fee2e2; color: #991b1b; }
+
+        .qa-question {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .qa-answer {
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.5;
+            background: #f9fafb;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .qa-feedback {
+            font-size: 13px;
+            color: #6b7280;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        /* Simulation */
+        .sim-task {
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.6;
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .sim-score-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sim-score-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .sim-score-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .sim-score-text {
+            font-size: 14px;
+            font-weight: 700;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .sim-feedback {
+            font-size: 13px;
+            color: #6b7280;
+            font-style: italic;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 140px;
+            display: inline-block;
+            padding: 13px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .btn-primary  { background: #4f46e5; color: #fff; }
+        .btn-primary:hover  { background: #4338ca; }
+
+        .btn-outline  { background: #fff; color: #4f46e5; border: 1.5px solid #4f46e5; }
+        .btn-outline:hover  { background: #f5f3ff; }
+
+        .btn-gray { background: #fff; color: #374151; border: 1.5px solid #e5e7eb; }
+        .btn-gray:hover { background: #f9fafb; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <span class="role-badge">{{ role }}</span>
+        <h1>Assessment Complete</h1>
+        <p>Here is your full performance report for the {{ role }} path.</p>
+    </div>
+
+    <!-- Report Card -->
+    <div class="card">
+        <div class="card-title">Final Report</div>
+
+        {% set rating = report.get('rating', 'Average') %}
+        {% set overall = report.get('overall', 0) %}
+
+        {% if rating == 'Excellent' %}
+            {% set color_class = 'excellent' %}
+        {% elif rating == 'Good' %}
+            {% set color_class = 'good' %}
+        {% elif rating == 'Average' %}
+            {% set color_class = 'average' %}
+        {% else %}
+            {% set color_class = 'poor' %}
+        {% endif %}
+
+        <div class="report-top">
+            <div class="score-circle {{ color_class }}">
+                <span class="score-num">{{ overall }}</span>
+                <span class="score-label">/ 10</span>
+            </div>
+            <div class="report-meta">
+                <span class="rating-pill {{ color_class }}">{{ rating }}</span>
+                <div class="job-ready-row">
+                    {% set verdict = report.get('job_ready', '') %}
+                    {% if 'Yes' in verdict %}
+                        <span class="dot dot-green"></span>
+                    {% elif 'Almost' in verdict %}
+                        <span class="dot dot-yellow"></span>
+                    {% else %}
+                        <span class="dot dot-red"></span>
+                    {% endif %}
+                    <span>{{ verdict }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-summary">{{ report.get('summary', '') }}</div>
+
+        <div class="two-col">
+            <div class="info-box green">
+                <div class="ib-label">Strengths</div>
+                <div class="ib-text">{{ report.get('strengths', '') }}</div>
+            </div>
+            <div class="info-box amber">
+                <div class="ib-label">Areas to improve</div>
+                <div class="ib-text">{{ report.get('improvements', '') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interview Q&A Breakdown -->
+    {% if history %}
+    <div class="card">
+        <div class="card-title">Interview Breakdown ({{ history | length }} rounds)</div>
+
+        {% for qa in history %}
+        <div class="qa-item">
+            <div class="qa-header">
+                <span class="round-label">Round {{ loop.index }}</span>
+                <span class="score-pill {% if qa.score >= 7 %}high{% elif qa.score >= 5 %}mid{% else %}low{% endif %}">
+                    {{ qa.score }}/10
+                </span>
+            </div>
+            <div class="qa-question">{{ qa.question }}</div>
+            <div class="qa-answer">{{ qa.answer }}</div>
+            <div class="qa-feedback">{{ qa.feedback }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Simulation -->
+    <div class="card">
+        <div class="card-title">Job Simulation</div>
+
+        {% if session.get('simulation_task') %}
+        <div class="sim-task">{{ session.get('simulation_task') }}</div>
+        {% endif %}
+
+        {% set sim_score = simulation_score | int %}
+        {% set sim_pct   = (sim_score / 10 * 100) | int %}
+
+        {% if sim_score >= 7 %}
+            {% set sim_color = '#10b981' %}
+        {% elif sim_score >= 5 %}
+            {% set sim_color = '#f59e0b' %}
+        {% else %}
+            {% set sim_color = '#ef4444' %}
+        {% endif %}
+
+        <div class="sim-score-row">
+            <div class="sim-score-bar-bg">
+                <div class="sim-score-bar-fill" id="sim-bar" style="background: {{ sim_color }};"></div>
+            </div>
+            <span class="sim-score-text" style="color: {{ sim_color }};">{{ sim_score }}/10</span>
+        </div>
+
+        {% if sim_feedback %}
+        <div class="sim-feedback">{{ sim_feedback }}</div>
+        {% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div class="card">
+        <div class="actions">
+            <a href="/career" class="btn btn-primary">Retake Assessment</a>
+            <a href="/dashboard" class="btn btn-outline">Go to Dashboard</a>
+            <a href="/resume" class="btn btn-gray">Analyze Resume</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.getElementById('sim-bar').style.width = '{{ sim_pct }}%';
+</script>
+</body>
+</html>
