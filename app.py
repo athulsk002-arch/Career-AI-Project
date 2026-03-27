@@ -507,7 +507,7 @@ def score_mcq_level(answers_dict, questions, time_taken):
     review  = []
 
     for i, q in enumerate(questions):
-        user_ans = answers_dict.get(str(i))
+        user_ans   = answers_dict.get(str(i))
         is_correct = user_ans == q.get("correct")
         if is_correct:
             correct += 1
@@ -516,14 +516,14 @@ def score_mcq_level(answers_dict, questions, time_taken):
             "user_answer":      user_ans,
             "user_answer_text": q.get("options", {}).get(user_ans, "Skipped") if user_ans else "Skipped",
             "correct_answer":   q.get("correct", ""),
-            "correct_text":     q.get("options", {}).get(q.get("correct", ""), ""),
+            "correct_text":     q.get("options", {}).get(q.get("correct", ""), ""),  # ← fixed key name
             "correct":          is_correct,
             "skipped":          user_ans is None,
         })
 
-    pct       = round((correct / total) * 100) if total > 0 else 0
-    avg_time  = round(time_taken / total, 1)    if total > 0 else 0
-    passed    = pct >= 60
+    pct      = round((correct / total) * 100) if total > 0 else 0
+    avg_time = round(time_taken / total, 1)    if total > 0 else 0
+    passed   = pct >= 60
 
     if avg_time <= 15:   speed = 100
     elif avg_time <= 30: speed = 75
@@ -535,7 +535,6 @@ def score_mcq_level(answers_dict, questions, time_taken):
         "passed": passed, "avg_time": avg_time, "speed": speed,
         "review": review,
     }
-
 
 # ─────────────────────────────────────────────
 # AI: Interview helpers (unchanged)

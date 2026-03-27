@@ -14,10 +14,12 @@
             padding: 40px 20px;
             color: #1a1a2e;
         }
-        .hidden { display: none; }
 
-        .container { max-width: 680px; margin: 0 auto; }
+        .hidden { display: none !important; }
 
+        .container { max-width: 720px; margin: 0 auto; }
+
+        /* ── Top bar ── */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -33,7 +35,7 @@
             color: #4f46e5;
             font-size: 12px;
             font-weight: 600;
-            padding: 4px 12px;
+            padding: 4px 14px;
             border-radius: 20px;
             text-transform: capitalize;
         }
@@ -52,20 +54,64 @@
             font-size: 18px;
             font-weight: 700;
             color: #1a1a2e;
-            min-width: 48px;
+            min-width: 52px;
         }
 
         .timer-display.warning { color: #f59e0b; }
         .timer-display.danger  { color: #ef4444; }
 
-        .progress-wrap { margin-bottom: 24px; }
+        /* ── Section header ── */
+        .section-header {
+            background: #fff;
+            border-radius: 14px;
+            padding: 18px 24px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-left: 4px solid #4f46e5;
+        }
+
+        .section-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .section-header p {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .level-pills {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .level-pill {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1.5px solid #e5e7eb;
+            background: #fff;
+            color: #9ca3af;
+            cursor: default;
+        }
+
+        .level-pill.active   { border-color: #4f46e5; background: #ede9fe; color: #4f46e5; }
+        .level-pill.done     { border-color: #10b981; background: #d1fae5; color: #065f46; }
+
+        /* ── Progress ── */
+        .progress-wrap { margin-bottom: 20px; }
 
         .progress-info {
             display: flex;
             justify-content: space-between;
             font-size: 13px;
             color: #6b7280;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .progress-bar {
@@ -86,19 +132,21 @@
             display: flex;
             gap: 6px;
             margin-top: 10px;
+            flex-wrap: wrap;
         }
 
         .q-dot {
-            width: 8px;
-            height: 8px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             background: #e5e7eb;
             transition: background 0.2s;
         }
 
         .q-dot.answered { background: #4f46e5; }
-        .q-dot.current  { background: #818cf8; }
+        .q-dot.current  { background: #818cf8; ring: 2px solid #4f46e5; }
 
+        /* ── Card ── */
         .card {
             background: #fff;
             border-radius: 14px;
@@ -113,7 +161,7 @@
             color: #9ca3af;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .q-text {
@@ -121,9 +169,10 @@
             font-weight: 600;
             color: #1a1a2e;
             line-height: 1.5;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
         }
 
+        /* ── Options ── */
         .options { display: flex; flex-direction: column; gap: 10px; }
 
         .option-label {
@@ -141,8 +190,6 @@
         }
 
         .option-label:hover { border-color: #4f46e5; background: #f5f3ff; }
-
-        .option-label input[type="radio"] { display: none; }
 
         .option-label.selected {
             border-color: #4f46e5;
@@ -167,6 +214,32 @@
 
         .option-label.selected .option-key { background: #4f46e5; color: #fff; }
 
+        /* ── Textarea (descriptive) ── */
+        .desc-textarea {
+            width: 100%;
+            min-height: 160px;
+            padding: 14px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Segoe UI', sans-serif;
+            color: #1a1a2e;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+            line-height: 1.6;
+        }
+
+        .desc-textarea:focus { border-color: #4f46e5; }
+
+        .char-hint {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        /* ── Nav row ── */
         .nav-row {
             display: flex;
             justify-content: space-between;
@@ -204,19 +277,96 @@
             border: none;
         }
 
-        .loading {
+        /* ── Section complete ── */
+        .section-complete {
             text-align: center;
-            padding: 60px 20px;
+            padding: 48px 20px;
         }
 
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
+        .section-complete .tick {
+            width: 64px;
+            height: 64px;
+            background: #d1fae5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin: 0 auto 16px;
+        }
+
+        .section-complete h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+
+        .section-complete p {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+
+        /* ── Revision notes modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 560px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 14px;
+        }
+
+        .modal-notes {
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .modal-close {
+            margin-top: 20px;
+            width: 100%;
+            padding: 11px;
+            background: #4f46e5;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ── Spinner ── */
+        .spinner {
+            width: 36px; height: 36px;
             border: 3px solid #e5e7eb;
             border-top-color: #4f46e5;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin: 0 auto 16px;
+            margin: 0 auto 10px;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -225,50 +375,65 @@
 <body>
 <div class="container">
 
-{% if loading %}
-    <div class="card loading">
-        <div class="loading-spinner"></div>
-        <p>Generating your assessment questions...</p>
-        <p style="font-size:13px;color:#9ca3af;margin-top:6px;">This takes a few seconds</p>
-    </div>
-{% else %}
-
+    <!-- Top bar -->
     <div class="top-bar">
         <span class="role-badge">{{ role }}</span>
         <div class="timer-wrap">
             <span>⏱</span>
-            <span class="timer-display" id="timer">{{ time_limit }}</span>
+            <span class="timer-display" id="timer-display">--:--</span>
         </div>
     </div>
 
-    <div class="progress-wrap">
-        <div class="progress-info">
-            <span>Question <strong id="q-label">1</strong> of {{ questions | length }}</span>
-            <span id="answered-count">0 answered</span>
-        </div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-        </div>
-        <div class="q-dots">
-            {% for q in questions %}
-                <div class="q-dot {% if loop.index0 == 0 %}current{% endif %}" id="dot-{{ loop.index0 }}"></div>
-            {% endfor %}
-        </div>
+    <!-- Level pills -->
+    <div class="level-pills">
+        <span class="level-pill active" id="pill-l1">Level 1 · Basic (10)</span>
+        <span class="level-pill" id="pill-l2">Level 2 · Intermediate (10)</span>
+        <span class="level-pill" id="pill-l3">Level 3 · Critical (5)</span>
+        <span class="level-pill" id="pill-desc">Descriptive (3)</span>
     </div>
 
-    <form method="POST" action="/assessment" id="assessment-form">
-        <input type="hidden" name="time_taken" id="time-taken" value="0">
+    <!-- ══════════ HIDDEN FORM (submits everything) ══════════ -->
+    <form method="POST" action="/assessment" id="main-form">
+        <input type="hidden" name="answers_l1"   id="hidden-l1"   value="{}">
+        <input type="hidden" name="answers_l2"   id="hidden-l2"   value="{}">
+        <input type="hidden" name="answers_l3"   id="hidden-l3"   value="{}">
+        <input type="hidden" name="answers_desc" id="hidden-desc" value="{}">
+        <input type="hidden" name="time_taken_l1"   id="time-l1"   value="0">
+        <input type="hidden" name="time_taken_l2"   id="time-l2"   value="0">
+        <input type="hidden" name="time_taken_l3"   id="time-l3"   value="0">
+        <input type="hidden" name="time_taken_desc" id="time-desc" value="0">
+    </form>
 
-        {% for q in questions %}
+    <!-- ══════════ SECTION 1 — BASIC ══════════ -->
+    <div id="section-l1">
+        <div class="section-header">
+            <h2>🟢 Level 1 — Basic Questions</h2>
+            <p>Fundamental concepts · 10 questions · 5 minutes</p>
+        </div>
+
+        <div class="progress-wrap" id="prog-l1">
+            <div class="progress-info">
+                <span>Question <strong id="ql1-label">1</strong> of {{ questions_l1 | length }}</span>
+                <span id="ql1-answered">0 answered</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="pf-l1"></div></div>
+            <div class="q-dots" id="dots-l1">
+                {% for q in questions_l1 %}
+                    <div class="q-dot {% if loop.index0 == 0 %}current{% endif %}" id="dot-l1-{{ loop.index0 }}"></div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% for q in questions_l1 %}
         {% set i = loop.index0 %}
-        <div class="card question-card {% if i != 0 %}hidden{% endif %}" id="qcard-{{ i }}">
-            <div class="q-number">Question {{ loop.index }} of {{ questions | length }}</div>
+        <div class="card question-card-l1 {% if i != 0 %}hidden{% endif %}" id="qcard-l1-{{ i }}">
+            <div class="q-number">Question {{ loop.index }} of {{ questions_l1 | length }}</div>
             <div class="q-text">{{ q.question }}</div>
             <div class="options">
-                {% for key in ['A', 'B', 'C', 'D'] %}
+                {% for key in ['A','B','C','D'] %}
                 {% if q.options[key] is defined %}
-                <label class="option-label" id="opt-{{ i }}-{{ key }}" data-q="{{ i }}" data-key="{{ key }}">
-                    <input type="radio" name="answer_{{ i }}" value="{{ key }}">
+                <label class="option-label" id="opt-l1-{{ i }}-{{ key }}"
+                       data-section="l1" data-q="{{ i }}" data-key="{{ key }}">
                     <span class="option-key">{{ key }}</span>
                     <span>{{ q.options[key] }}</span>
                 </label>
@@ -278,134 +443,493 @@
         </div>
         {% endfor %}
 
-        <div class="nav-row">
-         <button type="button" class="btn btn-ghost" id="prev-btn" style="visibility:hidden;">← Previous</button>
-         <button type="button" class="skip-text" id="skip-btn">Skip →</button>
-         <button type="button" class="btn btn-primary" id="next-btn">Next →</button>
+        <div class="nav-row" id="nav-l1">
+            <button type="button" class="btn btn-ghost"  id="prev-l1" onclick="navigate('l1',-1)" style="visibility:hidden">← Prev</button>
+            <button type="button" class="skip-text"      id="skip-l1" onclick="navigate('l1',1)">Skip →</button>
+            <button type="button" class="btn btn-primary" id="next-l1" onclick="navigate('l1',1)">Next →</button>
         </div>
-    </form>
+    </div>
 
-{% endif %}
-<div id="assessment-data" 
-     data-total="{{ questions | length }}" 
-     data-time="{{ time_limit_seconds }}">
-</div>
+    <!-- ══════════ SECTION 1 COMPLETE ══════════ -->
+    <div id="done-l1" class="hidden card section-complete">
+        <div class="tick">✓</div>
+        <h3>Basic Level Done!</h3>
+        <p id="done-l1-msg">You answered 0 of 10 questions.</p>
+        <button class="btn btn-primary" id="retry-l1-btn" style="display:none;margin-bottom:12px;width:100%" onclick="showRevision('l1')">📚 Get Revision Notes</button>
+        <button class="btn btn-primary" style="width:100%;max-width:300px" onclick="startSection('l2')">Continue to Intermediate →</button>
+    </div>
+
+    <!-- ══════════ SECTION 2 — INTERMEDIATE ══════════ -->
+    <div id="section-l2" class="hidden">
+        <div class="section-header">
+            <h2>🟡 Level 2 — Intermediate Questions</h2>
+            <p>Applied knowledge · 10 questions · 5 minutes</p>
+        </div>
+
+        <div class="progress-wrap" id="prog-l2">
+            <div class="progress-info">
+                <span>Question <strong id="ql2-label">1</strong> of {{ questions_l2 | length }}</span>
+                <span id="ql2-answered">0 answered</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="pf-l2"></div></div>
+            <div class="q-dots" id="dots-l2">
+                {% for q in questions_l2 %}
+                    <div class="q-dot {% if loop.index0 == 0 %}current{% endif %}" id="dot-l2-{{ loop.index0 }}"></div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% for q in questions_l2 %}
+        {% set i = loop.index0 %}
+        <div class="card question-card-l2 {% if i != 0 %}hidden{% endif %}" id="qcard-l2-{{ i }}">
+            <div class="q-number">Question {{ loop.index }} of {{ questions_l2 | length }}</div>
+            <div class="q-text">{{ q.question }}</div>
+            <div class="options">
+                {% for key in ['A','B','C','D'] %}
+                {% if q.options[key] is defined %}
+                <label class="option-label" id="opt-l2-{{ i }}-{{ key }}"
+                       data-section="l2" data-q="{{ i }}" data-key="{{ key }}">
+                    <span class="option-key">{{ key }}</span>
+                    <span>{{ q.options[key] }}</span>
+                </label>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="nav-row" id="nav-l2">
+            <button type="button" class="btn btn-ghost"   id="prev-l2" onclick="navigate('l2',-1)" style="visibility:hidden">← Prev</button>
+            <button type="button" class="skip-text"       id="skip-l2" onclick="navigate('l2',1)">Skip →</button>
+            <button type="button" class="btn btn-primary" id="next-l2" onclick="navigate('l2',1)">Next →</button>
+        </div>
+    </div>
+
+    <!-- ══════════ SECTION 2 COMPLETE ══════════ -->
+    <div id="done-l2" class="hidden card section-complete">
+        <div class="tick">✓</div>
+        <h3>Intermediate Level Done!</h3>
+        <p id="done-l2-msg">You answered 0 of 10 questions.</p>
+        <button class="btn btn-primary" id="retry-l2-btn" style="display:none;margin-bottom:12px;width:100%" onclick="showRevision('l2')">📚 Get Revision Notes</button>
+        <button class="btn btn-primary" style="width:100%;max-width:300px" onclick="startSection('l3')">Continue to Critical →</button>
+    </div>
+
+    <!-- ══════════ SECTION 3 — CRITICAL ══════════ -->
+    <div id="section-l3" class="hidden">
+        <div class="section-header">
+            <h2>🔴 Level 3 — Critical Thinking</h2>
+            <p>Scenario-based analysis · 5 questions · 3 minutes</p>
+        </div>
+
+        <div class="progress-wrap" id="prog-l3">
+            <div class="progress-info">
+                <span>Question <strong id="ql3-label">1</strong> of {{ questions_l3 | length }}</span>
+                <span id="ql3-answered">0 answered</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="pf-l3"></div></div>
+            <div class="q-dots" id="dots-l3">
+                {% for q in questions_l3 %}
+                    <div class="q-dot {% if loop.index0 == 0 %}current{% endif %}" id="dot-l3-{{ loop.index0 }}"></div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% for q in questions_l3 %}
+        {% set i = loop.index0 %}
+        <div class="card question-card-l3 {% if i != 0 %}hidden{% endif %}" id="qcard-l3-{{ i }}">
+            <div class="q-number">Question {{ loop.index }} of {{ questions_l3 | length }}</div>
+            <div class="q-text">{{ q.question }}</div>
+            <div class="options">
+                {% for key in ['A','B','C','D'] %}
+                {% if q.options[key] is defined %}
+                <label class="option-label" id="opt-l3-{{ i }}-{{ key }}"
+                       data-section="l3" data-q="{{ i }}" data-key="{{ key }}">
+                    <span class="option-key">{{ key }}</span>
+                    <span>{{ q.options[key] }}</span>
+                </label>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="nav-row" id="nav-l3">
+            <button type="button" class="btn btn-ghost"   id="prev-l3" onclick="navigate('l3',-1)" style="visibility:hidden">← Prev</button>
+            <button type="button" class="skip-text"       id="skip-l3" onclick="navigate('l3',1)">Skip →</button>
+            <button type="button" class="btn btn-primary" id="next-l3" onclick="navigate('l3',1)">Next →</button>
+        </div>
+    </div>
+
+    <!-- ══════════ SECTION 3 COMPLETE ══════════ -->
+    <div id="done-l3" class="hidden card section-complete">
+        <div class="tick">✓</div>
+        <h3>Critical Level Done!</h3>
+        <p id="done-l3-msg">You answered 0 of 5 questions.</p>
+        <button class="btn btn-primary" id="retry-l3-btn" style="display:none;margin-bottom:12px;width:100%" onclick="showRevision('l3')">📚 Get Revision Notes</button>
+        <button class="btn btn-primary" style="width:100%;max-width:300px" onclick="startSection('desc')">Continue to Descriptive →</button>
+    </div>
+
+    <!-- ══════════ SECTION 4 — DESCRIPTIVE ══════════ -->
+    <div id="section-desc" class="hidden">
+        <div class="section-header">
+            <h2>✍️ Descriptive Questions</h2>
+            <p>Write code / explain your solution · 3 questions · 15 minutes</p>
+        </div>
+
+        {% for q in questions_desc %}
+        {% set i = loop.index0 %}
+        <div class="card {% if i != 0 %}hidden{% endif %}" id="qcard-desc-{{ i }}">
+            <div class="q-number">Question {{ loop.index }} of {{ questions_desc | length }}</div>
+            <div class="q-text">{{ q.question }}</div>
+            <textarea class="desc-textarea"
+                      id="desc-ans-{{ i }}"
+                      placeholder="Write your code or explanation here. Be specific and detailed."
+                      oninput="updateDescCount({{ i }})"
+                      ></textarea>
+            <div class="char-hint"><span id="desc-count-{{ i }}">0</span> characters</div>
+        </div>
+        {% endfor %}
+
+        <div class="nav-row" id="nav-desc">
+            <button type="button" class="btn btn-ghost"   id="prev-desc" onclick="navigateDesc(-1)" style="visibility:hidden">← Prev</button>
+            <button type="button" class="skip-text"       id="skip-desc" onclick="navigateDesc(1)">Skip →</button>
+            <button type="button" class="btn btn-primary" id="next-desc" onclick="navigateDesc(1)">Next →</button>
+        </div>
+    </div>
+
+    <!-- ══════════ REVISION NOTES MODAL ══════════ -->
+    <div class="modal-overlay" id="revision-modal">
+        <div class="modal">
+            <div class="modal-title" id="modal-title">📚 Revision Notes</div>
+            <div id="modal-body">
+                <div class="spinner"></div>
+                <p style="text-align:center;color:#9ca3af;font-size:14px">Generating notes…</p>
+            </div>
+            <button class="modal-close" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+</div><!-- /container -->
 
 <script>
-    const meta           = document.getElementById('assessment-data');
-    const totalQuestions = parseInt(meta.getAttribute('data-total'));
-    const timeLimit      = parseInt(meta.getAttribute('data-time'));
-    let currentQ         = 0;
-    let answers          = {};
-    let secondsLeft      = timeLimit;
-    let startTimestamp   = Date.now();
+// ─── State ───────────────────────────────────────────────────────────────────
+const ROLE = "{{ role }}";
 
-    function updateProgress() {
-        const pct = ((currentQ + 1) / totalQuestions * 100);
-        document.getElementById('progress-fill').style.width = pct + '%';
-        document.getElementById('q-label').textContent = currentQ + 1;
-        document.getElementById('answered-count').textContent = Object.keys(answers).length + ' answered';
-        document.getElementById('prev-btn').addEventListener('click', function() { navigate(-1); });
-        document.getElementById('skip-btn').addEventListener('click', function() { navigate(1); });
+const SECTIONS = {
+    l1:   { total: parseInt('{{ questions_l1|length }}'), current: 0, answers: {}, startTs: null, elapsed: 0 },
+    l2:   { total: parseInt('{{ questions_l2|length }}'), current: 0, answers: {}, startTs: null, elapsed: 0 },
+    l3:   { total: parseInt('{{ questions_l3|length }}'), current: 0, answers: {}, startTs: null, elapsed: 0 },
+    desc: { total: parseInt('{{ questions_desc|length }}'), current: 0, answers: {}, startTs: null, elapsed: 0 } 
+};
+const TIME_LIMITS = { l1: 300, l2: 300, l3: 180, desc: 900 };
 
-        for (let i = 0; i < totalQuestions; i++) {
-            const dot = document.getElementById('dot-' + i);
-            if (!dot) continue;
-            dot.className = 'q-dot';
-            if (answers[i] !== undefined) dot.classList.add('answered');
-            else if (i === currentQ)      dot.classList.add('current');
-        }
+let activeSection = 'l1';
+let timerInterval = null;
+let secondsLeft   = TIME_LIMITS['l1'];
 
-        document.getElementById('prev-btn').style.visibility = currentQ > 0 ? 'visible' : 'hidden';
-
-        const nextBtn = document.getElementById('next-btn');
-        if (currentQ === totalQuestions - 1) {
-            nextBtn.textContent = 'Submit Assessment →';
-            nextBtn.onclick = submitAssessment;
-        } else {
-            nextBtn.textContent = 'Next →';
-            nextBtn.onclick = function() { navigate(1); };
-        }
-    }
-
-    function selectOption(qIndex, key) {
-        answers[qIndex] = key;
-
-        const radio = document.querySelector('input[name="answer_' + qIndex + '"][value="' + key + '"]');
-        if (radio) radio.checked = true;
-
-        document.querySelectorAll('#qcard-' + qIndex + ' .option-label').forEach(function(el) {
-            el.classList.remove('selected');
-        });
-        const selected = document.getElementById('opt-' + qIndex + '-' + key);
-        if (selected) selected.classList.add('selected');
-
-        updateProgress();
-
-        if (qIndex < totalQuestions - 1) {
-            setTimeout(function() { navigate(1); }, 400);
-        }
-    }
-
-    function navigate(dir) {
-        document.getElementById('qcard-' + currentQ).style.display = 'none';
-        currentQ = Math.max(0, Math.min(totalQuestions - 1, currentQ + dir));
-        document.getElementById('qcard-' + currentQ).style.display = 'block';
-        updateProgress();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function submitAssessment() {
-        document.getElementById('time-taken').value = Math.round((Date.now() - startTimestamp) / 1000);
-
-        for (let i = 0; i < totalQuestions; i++) {
-            if (answers[i]) {
-                const radio = document.querySelector('input[name="answer_' + i + '"][value="' + answers[i] + '"]');
-                if (radio) radio.checked = true;
-            }
-        }
-
-        const btn = document.getElementById('next-btn');
-        btn.disabled = true;
-        btn.textContent = 'Submitting...';
-        document.getElementById('assessment-form').submit();
-    }
-
-    function updateTimer() {
-        const mins = Math.floor(secondsLeft / 60);
-        const secs = secondsLeft % 60;
-        const display = document.getElementById('timer');
-        if (!display) return;
-
-        display.textContent = mins + ':' + String(secs).padStart(2, '0');
-        display.className = 'timer-display';
-        if (secondsLeft <= 60) display.classList.add('warning');
-        if (secondsLeft <= 15) display.classList.add('danger');
-
+// ─── Timer ───────────────────────────────────────────────────────────────────
+function startTimer(section) {
+    clearInterval(timerInterval);
+    secondsLeft = TIME_LIMITS[section];
+    SECTIONS[section].startTs = Date.now();
+    updateTimerDisplay();
+    timerInterval = setInterval(function() {
+        secondsLeft--;
+        updateTimerDisplay();
         if (secondsLeft <= 0) {
             clearInterval(timerInterval);
-            submitAssessment();
-            return;
+            finishSection(section, true);
         }
-        secondsLeft--;
-    }
+    }, 1000);
+}
 
-    const timerInterval = setInterval(updateTimer, 1000);
-    updateTimer();
-    updateProgress();
-// Click handler for options
-    document.addEventListener('click', function(e) {
-        const label = e.target.closest('.option-label');
-        if (!label) return;
-        const q   = parseInt(label.getAttribute('data-q'));
-        const key = label.getAttribute('data-key');
-        selectOption(q, key);
+function updateTimerDisplay() {
+    const m = Math.floor(secondsLeft / 60);
+    const s = secondsLeft % 60;
+    const el = document.getElementById('timer-display');
+    el.textContent = m + ':' + String(s).padStart(2, '0');
+    el.className = 'timer-display';
+    if (secondsLeft <= 60) el.classList.add('warning');
+    if (secondsLeft <= 15) el.classList.add('danger');
+}
+
+// ─── Section switching ────────────────────────────────────────────────────────
+function startSection(section) {
+    // hide everything
+    ['l1','l2','l3','desc'].forEach(function(s) {
+        safeHide('section-' + s);
+        safeHide('done-' + s);
     });
 
-    // Anti-cheat
-    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-    document.addEventListener('selectstart', function(e) { e.preventDefault(); });
-    document.addEventListener('copy',        function(e) { e.preventDefault(); });
+    safeShow('section-' + section);
+    activeSection = section;
+
+    // mark pills
+    const pillMap = { l1: 'pill-l1', l2: 'pill-l2', l3: 'pill-l3', desc: 'pill-desc' };
+    Object.keys(pillMap).forEach(function(k) {
+        const pill = document.getElementById(pillMap[k]);
+        if (!pill) return;
+        pill.classList.remove('active','done');
+        const sec = SECTIONS[k];
+        if (k === section) pill.classList.add('active');
+        else if (sec && sec.elapsed > 0) pill.classList.add('done');
+    });
+
+    startTimer(section);
+    updateProgress(section);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── MCQ navigation ──────────────────────────────────────────────────────────
+function navigate(section, dir) {
+    const sec = SECTIONS[section];
+    const total = sec.total;
+    const cur   = sec.current;
+    const next  = cur + dir;
+
+    // if going forward on last question → finish section
+    if (dir > 0 && cur >= total - 1) {
+        finishSection(section, false);
+        return;
+    }
+
+    safeHide('qcard-' + section + '-' + cur);
+    sec.current = Math.max(0, Math.min(total - 1, next));
+    safeShow('qcard-' + section + '-' + sec.current);
+    updateProgress(section);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── Descriptive navigation ───────────────────────────────────────────────────
+function navigateDesc(dir) {
+    const sec   = SECTIONS.desc;
+    const total = sec.total;
+    const cur   = sec.current;
+
+    // save current answer
+    const ta = document.getElementById('desc-ans-' + cur);
+    if (ta) sec.answers[cur] = ta.value;
+
+    if (dir > 0 && cur >= total - 1) {
+        finishSection('desc', false);
+        return;
+    }
+
+    safeHide('qcard-desc-' + cur);
+    sec.current = Math.max(0, Math.min(total - 1, cur + dir));
+    safeShow('qcard-desc-' + sec.current);
+
+    // restore saved answer
+    const taNext = document.getElementById('desc-ans-' + sec.current);
+    if (taNext && sec.answers[sec.current] !== undefined) {
+        taNext.value = sec.answers[sec.current];
+        updateDescCount(sec.current);
+    }
+
+    // update nav buttons
+    const prevBtn = document.getElementById('prev-desc');
+    const nextBtn = document.getElementById('next-desc');
+    if (prevBtn) prevBtn.style.visibility = sec.current > 0 ? 'visible' : 'hidden';
+    if (nextBtn) nextBtn.textContent = sec.current >= total - 1 ? 'Submit All →' : 'Next →';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── Select MCQ option ────────────────────────────────────────────────────────
+function selectOption(section, qIndex, key) {
+    const sec = SECTIONS[section];
+    sec.answers[qIndex] = key;
+
+    // Clear all options for this question
+    document.querySelectorAll('#qcard-' + section + '-' + qIndex + ' .option-label')
+        .forEach(function(el) { el.classList.remove('selected'); });
+
+    // Highlight selected
+    const sel = document.getElementById('opt-' + section + '-' + qIndex + '-' + key);
+    if (sel) sel.classList.add('selected');
+
+    updateProgress(section);
+
+    // auto-advance after short delay
+    if (qIndex < sec.total - 1) {
+        setTimeout(function() { navigate(section, 1); }, 380);
+    } else {
+        // last question – update next button
+        const nextBtn = document.getElementById('next-' + section);
+        if (nextBtn) nextBtn.textContent = 'Finish Level →';
+    }
+}
+
+// ─── Progress ─────────────────────────────────────────────────────────────────
+function updateProgress(section) {
+    const sec   = SECTIONS[section];
+    const total = sec.total;
+    const cur   = sec.current;
+    const done  = Object.keys(sec.answers).length;
+
+    const pct = total > 0 ? ((cur + 1) / total * 100) : 0;
+    const pf = document.getElementById('pf-' + section);
+    if (pf) pf.style.width = pct + '%';
+
+    const lbl = document.getElementById('q' + section + '-label');
+    if (lbl) lbl.textContent = cur + 1;
+
+    const ans = document.getElementById('q' + section + '-answered');
+    if (ans) ans.textContent = done + ' answered';
+
+    // dots
+    for (let i = 0; i < total; i++) {
+        const dot = document.getElementById('dot-' + section + '-' + i);
+        if (!dot) continue;
+        dot.className = 'q-dot';
+        if (sec.answers[i] !== undefined) dot.classList.add('answered');
+        else if (i === cur)               dot.classList.add('current');
+    }
+
+    // prev/next buttons
+    const prevBtn = document.getElementById('prev-' + section);
+    const nextBtn = document.getElementById('next-' + section);
+    if (prevBtn) prevBtn.style.visibility = cur > 0 ? 'visible' : 'hidden';
+    if (nextBtn) {
+        if (cur >= total - 1) nextBtn.textContent = 'Finish Level →';
+        else nextBtn.textContent = 'Next →';
+    }
+}
+
+// ─── Finish section ───────────────────────────────────────────────────────────
+function finishSection(section, timedOut) {
+    clearInterval(timerInterval);
+
+    const sec = SECTIONS[section];
+    sec.elapsed = TIME_LIMITS[section] - secondsLeft;
+    if (sec.elapsed <= 0) sec.elapsed = TIME_LIMITS[section]; // fallback for timeout
+
+    // save desc answers
+    if (section === 'desc') {
+        for (let i = 0; i < sec.total; i++) {
+            const ta = document.getElementById('desc-ans-' + i);
+            if (ta) sec.answers[i] = ta.value;
+        }
+    }
+
+    // store into hidden form fields
+    document.getElementById('hidden-' + section).value   = JSON.stringify(sec.answers);
+    document.getElementById('time-' + section).value     = sec.elapsed;
+
+    if (section === 'desc') {
+        // Final section — submit
+        submitAll();
+        return;
+    }
+
+    // show completion screen
+    safeHide('section-' + section);
+
+    const doneEl = document.getElementById('done-' + section);
+    if (doneEl) doneEl.classList.remove('hidden');
+
+    const answeredCount = Object.keys(sec.answers).length;
+    const msgEl = document.getElementById('done-' + section + '-msg');
+    if (msgEl) msgEl.textContent = 'You answered ' + answeredCount + ' of ' + sec.total + ' questions.';
+
+    // show revision notes button if score might be low
+    const pct = sec.total > 0 ? Math.round(answeredCount / sec.total * 100) : 0;
+    const retryBtn = document.getElementById('retry-' + section + '-btn');
+    if (retryBtn) retryBtn.style.display = 'block'; // always show notes option
+
+    // mark pill as done
+    const pillMap = { l1: 'pill-l1', l2: 'pill-l2', l3: 'pill-l3', desc: 'pill-desc' };
+    const pill = document.getElementById(pillMap[section]);
+    if (pill) { pill.classList.remove('active'); pill.classList.add('done'); }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── Submit all ───────────────────────────────────────────────────────────────
+function submitAll() {
+    // Make sure all hidden fields are populated
+    ['l1','l2','l3','desc'].forEach(function(s) {
+        const h = document.getElementById('hidden-' + s);
+        if (h && h.value === '{}') {
+            h.value = JSON.stringify(SECTIONS[s].answers);
+        }
+        const t = document.getElementById('time-' + s);
+        if (t && t.value === '0') {
+            t.value = SECTIONS[s].elapsed || TIME_LIMITS[s];
+        }
+    });
+
+    const form = document.getElementById('main-form');
+    const btn = document.getElementById('next-desc');
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+    form.submit();
+}
+
+// ─── Descriptive char count ───────────────────────────────────────────────────
+function updateDescCount(i) {
+    const ta = document.getElementById('desc-ans-' + i);
+    const ct = document.getElementById('desc-count-' + i);
+    if (ta && ct) ct.textContent = ta.value.length;
+}
+
+// ─── Revision notes ───────────────────────────────────────────────────────────
+function showRevision(level) {
+    document.getElementById('revision-modal').classList.add('open');
+    document.getElementById('modal-title').textContent = '📚 Revision Notes — ' + level.toUpperCase() + ' Level';
+    document.getElementById('modal-body').innerHTML =
+        '<div class="spinner"></div><p style="text-align:center;color:#9ca3af;font-size:14px">Generating notes…</p>';
+
+    const sec = SECTIONS[level];
+    const answered = Object.keys(sec.answers).length;
+
+    fetch('/get_revision_notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            role:    ROLE,
+            level:   level === 'l1' ? 'basic' : (level === 'l2' ? 'intermediate' : 'critical'),
+            correct: answered,
+            total:   sec.total
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        document.getElementById('modal-body').innerHTML =
+            '<div class="modal-notes">' + (data.notes || 'No notes available.') + '</div>';
+    })
+    .catch(function() {
+        document.getElementById('modal-body').innerHTML =
+            '<p style="color:#ef4444">Could not load notes. Please try again.</p>';
+    });
+}
+
+function closeModal() {
+    document.getElementById('revision-modal').classList.remove('open');
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function safeHide(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+}
+
+function safeShow(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('hidden');
+}
+
+// ─── Option click handler (delegated) ────────────────────────────────────────
+document.addEventListener('click', function(e) {
+    const label = e.target.closest('.option-label[data-section]');
+    if (!label) return;
+    const section = label.getAttribute('data-section');
+    const q       = parseInt(label.getAttribute('data-q'));
+    const key     = label.getAttribute('data-key');
+    selectOption(section, q, key);
+});
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+startSection('l1');
 </script>
 </body>
 </html>
