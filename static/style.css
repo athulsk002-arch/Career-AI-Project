@@ -1,0 +1,172 @@
+body{
+font-family: Arial;
+background:#f2f2f2;
+margin:40px;
+}
+
+button{
+padding:10px;
+background:blue;
+color:white;
+border:none;
+}
+/* Reset some default styles */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Form container */
+form {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    width: 300px;
+}
+
+/* Heading */
+h2 {
+    position: absolute;
+    top: 80px;
+    color: white;
+    font-size: 28px;
+}
+
+/* Labels */
+label {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Input fields */
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    transition: 0.3s;
+}
+
+/* Input focus effect */
+input:focus {
+    border-color: #4facfe;
+    box-shadow: 0 0 5px rgba(79, 172, 254, 0.5);
+}
+
+/* Button */
+button {
+    width: 100%;
+    padding: 10px;
+    background: #4facfe;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* Button hover */
+button:hover {
+    background: #00c6ff;
+}
+
+/* Back link */
+a {
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+/* Background */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Main container */
+.container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    text-align: center;
+    width: 350px;
+}
+
+/* Heading */
+h2 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+/* Paragraph */
+p {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* Button styles */
+.resume-btn {
+    background: #4facfe;
+    color: white;
+}
+
+.resume-btn:hover {
+    background: #00c6ff;
+}
+
+.career-btn {
+    background: #43e97b;
+    color: white;
+}
+
+.career-btn:hover {
+    background: #2ecc71;
+}
+
+/* Logout link */
+.logout {
+    display: block;
+    margin-top: 20px;
+    color: #764ba2;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.logout:hover {
+    text-decoration: underline;
+}

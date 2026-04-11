@@ -1,11 +1,785 @@
-<link rel="stylesheet" href="/static/style.css">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<h3>{{question}}</h3>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Simulation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
-<form method="POST">
+        :root {
+            --bg: #0d0f14;
+            --surface: #161920;
+            --surface2: #1e2230;
+            --surface3: #252b3b;
+            --border: #2a2f3d;
+            --accent: #6c63ff;
+            --accent2: #4ecdc4;
+            --text: #e8eaf0;
+            --muted: #6b7280;
+            --danger: #ff6b6b;
+            --success: #4ecdc4;
+            --warn: #ffd166;
+            --orange: #ff9a3c;
+        }
 
-<textarea name="answer" rows="6" cols="60"></textarea><br><br>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-<button type="submit">Submit Answer</button>
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text);
+            padding: 32px 20px 60px;
+        }
 
-</form>
+        .container { max-width: 800px; margin: 0 auto; }
+
+        /* ── Header ── */
+        .header {
+            margin-bottom: 28px;
+        }
+
+        .top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,154,60,0.12);
+            border: 1px solid rgba(255,154,60,0.3);
+            color: var(--orange);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 20px;
+            text-transform: capitalize;
+            letter-spacing: 0.03em;
+        }
+
+        .sim-label {
+            font-size: 11px;
+            font-family: 'DM Mono', monospace;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        /* ── Timer bar ── */
+        .timer-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-bottom: 20px;
+        }
+
+        .timer-icon { font-size: 18px; }
+
+        .timer-info { flex: 1; }
+
+        .timer-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .timer-bar-bg {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .timer-bar-fill {
+            height: 100%;
+            background: var(--accent2);
+            border-radius: 2px;
+            transition: width 1s linear, background 0.5s;
+        }
+
+        .timer-display {
+            font-size: 22px;
+            font-weight: 700;
+            font-family: 'DM Mono', monospace;
+            color: var(--text);
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .timer-display.warn   { color: var(--warn); }
+        .timer-display.danger { color: var(--danger); }
+
+        /* ── Scenario tabs ── */
+        .scenario-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .scenario-tab {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--muted);
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .scenario-tab.active {
+            background: rgba(108,99,255,0.15);
+            border-color: rgba(108,99,255,0.4);
+            color: #a89cff;
+        }
+
+        .scenario-tab.done {
+            background: rgba(78,205,196,0.1);
+            border-color: rgba(78,205,196,0.3);
+            color: var(--accent2);
+        }
+
+        /* ── Scenario card ── */
+        .scenario-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .scenario-card.active { display: block; }
+
+        .scenario-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--surface2), var(--surface));
+        }
+
+        .scenario-type {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            padding: 3px 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .type-code    { background: rgba(108,99,255,0.15); color: #a89cff; }
+        .type-design  { background: rgba(78,205,196,0.15); color: var(--accent2); }
+        .type-debug   { background: rgba(255,107,107,0.15); color: #ff9f9f; }
+        .type-data    { background: rgba(255,209,102,0.15); color: var(--warn); }
+        .type-plan    { background: rgba(255,154,60,0.15);  color: var(--orange); }
+        .type-review  { background: rgba(160,220,120,0.15); color: #a0dc78; }
+
+        .scenario-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .scenario-context {
+            font-size: 13px;
+            color: #8b93a8;
+            line-height: 1.6;
+        }
+
+        .scenario-body { padding: 20px 24px; }
+
+        /* ── Task blocks ── */
+        .task-block {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .task-block:last-child { margin-bottom: 0; }
+
+        .task-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            background: rgba(108,99,255,0.2);
+            color: #a89cff;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'DM Mono', monospace;
+            margin-bottom: 8px;
+        }
+
+        .task-text {
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .task-detail {
+            font-size: 13px;
+            color: #8b93a8;
+            line-height: 1.5;
+            margin-top: 6px;
+        }
+
+        /* ── Code block ── */
+        .code-block {
+            background: #0a0c12;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            font-family: 'DM Mono', monospace;
+            font-size: 12.5px;
+            color: #c9d1e0;
+            line-height: 1.7;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block .code-lang {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .code-block .kw  { color: #c792ea; }
+        .code-block .str { color: #c3e88d; }
+        .code-block .fn  { color: #82aaff; }
+        .code-block .cm  { color: #546e7a; }
+        .code-block .num { color: #f78c6c; }
+
+        /* ── Deliverables ── */
+        .deliverables {
+            background: rgba(78,205,196,0.06);
+            border: 1px solid rgba(78,205,196,0.2);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 14px;
+        }
+
+        .deliverables-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent2);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 10px;
+        }
+
+        .deliverable-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 13px;
+            color: #8b93a8;
+            padding: 3px 0;
+            line-height: 1.5;
+        }
+
+        .deliverable-item::before {
+            content: '✦';
+            color: var(--accent2);
+            flex-shrink: 0;
+            font-size: 10px;
+            margin-top: 3px;
+        }
+
+        /* ── Answer area ── */
+        .answer-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .answer-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .voice-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .btn-voice {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-voice:hover { border-color: var(--danger); color: var(--danger); }
+        .btn-voice.recording { background: rgba(255,107,107,0.15); border-color: var(--danger); color: var(--danger); }
+
+        .waveform-mini {
+            display: none;
+            align-items: center;
+            gap: 3px;
+            height: 32px;
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 0 12px;
+            margin-bottom: 10px;
+        }
+
+        .waveform-mini.active { display: flex; }
+
+        .mini-bar {
+            width: 3px;
+            border-radius: 2px;
+            background: var(--danger);
+            height: 6px;
+        }
+
+        .mini-bar.pulse {
+            animation: mini-pulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes mini-pulse {
+            0%, 100% { height: 4px; }
+            50%       { height: 24px; }
+        }
+
+        .mini-bar:nth-child(2n)   { animation-delay: 0.1s; }
+        .mini-bar:nth-child(3n)   { animation-delay: 0.22s; }
+        .mini-bar:nth-child(4n)   { animation-delay: 0.34s; }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 16px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'DM Mono', monospace;
+            color: var(--text);
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+            line-height: 1.8;
+        }
+
+        textarea:focus { border-color: var(--accent); }
+
+        textarea::placeholder { color: #3d4457; font-family: 'DM Sans', sans-serif; }
+
+        .answer-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--muted);
+            font-family: 'DM Mono', monospace;
+        }
+
+        .char-good { color: var(--accent2); }
+
+        /* ── Submit ── */
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--orange), #ff6b6b);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s;
+            letter-spacing: 0.02em;
+            margin-top: 14px;
+        }
+
+        .submit-btn:hover    { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,154,60,0.35); }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* ── Spinner ── */
+        .spinner-inline {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Evaluation criteria ── */
+        .criteria-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .criteria-chip {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="top-row">
+            <span class="role-badge">💼 {{ role }}</span>
+            <span class="sim-label">Real-World Simulation</span>
+        </div>
+        <h1>Job Simulation Task</h1>
+        <p>Complete this realistic workplace scenario as if it were your first week on the job.</p>
+    </div>
+
+    <!-- Timer -->
+    <div class="timer-row">
+        <span class="timer-icon">⏱</span>
+        <div class="timer-info">
+            <div class="timer-label">Time remaining</div>
+            <div class="timer-bar-bg">
+                <div class="timer-bar-fill" id="timer-bar" style="width:100%"></div>
+            </div>
+        </div>
+        <div class="timer-display" id="timer-display">20:00</div>
+    </div>
+
+    <!-- Evaluation criteria -->
+    <div class="criteria-row">
+        <div class="criteria-chip">🎯 Problem Solving</div>
+        <div class="criteria-chip">💡 Technical Knowledge</div>
+        <div class="criteria-chip">📝 Communication</div>
+        <div class="criteria-chip">⚡ Practical Approach</div>
+    </div>
+
+    <!-- Scenario tabs (if multiple scenarios in task) -->
+    <div class="scenario-tabs" id="scenario-tabs">
+        <div class="scenario-tab active" onclick="switchTab(0)">📋 Scenario</div>
+        <div class="scenario-tab" onclick="switchTab(1)">🔍 Context</div>
+        <div class="scenario-tab" onclick="switchTab(2)">📦 Deliverables</div>
+    </div>
+
+    <!-- Tab: Main scenario -->
+    <div class="scenario-card active" id="tab-0">
+        <div class="scenario-header">
+            <span class="scenario-type {{ task_type_class }}">{{ task_type_label }}</span>
+            <div class="scenario-title">{{ task_title }}</div>
+            <div class="scenario-context">{{ task_context }}</div>
+        </div>
+        <div class="scenario-body">
+            {% for part in task_parts %}
+            <div class="task-block">
+                <div class="task-num">{{ loop.index }}</div>
+                <div class="task-text">{{ part.title }}</div>
+                <div class="task-detail">{{ part.detail }}</div>
+                {% if part.code %}
+                <div class="code-block">
+                    <span class="code-lang">{{ part.code_lang }}</span>
+                    <pre>{{ part.code }}</pre>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Tab: Context -->
+    <div class="scenario-card" id="tab-1">
+        <div class="scenario-body">
+            <div class="task-block">
+                <div class="task-text">📌 Background</div>
+                <div class="task-detail">{{ task_background }}</div>
+            </div>
+            <div class="task-block">
+                <div class="task-text">👥 Your Role</div>
+                <div class="task-detail">{{ task_your_role }}</div>
+            </div>
+            <div class="task-block">
+                <div class="task-text">⚠️ Constraints</div>
+                <div class="task-detail">{{ task_constraints }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Deliverables -->
+    <div class="scenario-card" id="tab-2">
+        <div class="scenario-body">
+            <div class="deliverables">
+                <div class="deliverables-title">What to include in your answer</div>
+                {% for d in task_deliverables %}
+                <div class="deliverable-item">{{ d }}</div>
+                {% endfor %}
+            </div>
+            <div class="task-block" style="margin-top:14px">
+                <div class="task-text">🏆 How you'll be scored</div>
+                <div class="task-detail">{{ task_scoring }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Answer section -->
+    <div class="answer-card">
+        <div class="answer-label">
+            <span>✍️</span> Your Solution
+        </div>
+
+        <!-- Voice controls -->
+        <div class="voice-toggle-row">
+            <span style="font-size:13px;color:var(--muted)">Type or use voice input</span>
+            <button class="btn-voice" id="voice-btn" onclick="toggleRecording()">
+                🎙️ Start Voice Input
+            </button>
+        </div>
+
+        <div class="waveform-mini" id="waveform-mini">
+            {% for i in range(12) %}
+            <div class="mini-bar" id="mini-bar-{{ i }}"></div>
+            {% endfor %}
+            <span style="font-size:12px;color:var(--danger);margin-left:8px;font-family:'DM Mono',monospace">Recording…</span>
+        </div>
+
+        <form method="POST" action="/simulation" id="sim-form">
+            <textarea
+                name="answer"
+                id="sim-answer"
+                placeholder="Write your complete solution here.
+
+Include:
+• Your approach and reasoning
+• Code snippets if applicable
+• Step-by-step explanation
+• Any trade-offs or alternative approaches"
+                oninput="updateSimCount()"
+                required
+            ></textarea>
+            <div class="answer-meta">
+                <span id="sim-char-count">0 chars</span>
+                <span>Detailed answers score higher · aim for 300+</span>
+            </div>
+            <button type="submit" class="submit-btn" id="sim-submit">
+                Submit Simulation →
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+// ─── Timer ─────────────────────────────────────────────────────────────────────
+const TOTAL_SECONDS = 1200; // 20 minutes
+let secondsLeft  = TOTAL_SECONDS;
+let timerStarted = true;
+
+function updateTimer() {
+    const m   = Math.floor(secondsLeft / 60);
+    const s   = secondsLeft % 60;
+    const pct = (secondsLeft / TOTAL_SECONDS) * 100;
+
+    const disp = document.getElementById('timer-display');
+    const bar  = document.getElementById('timer-bar');
+
+    disp.textContent = m + ':' + String(s).padStart(2, '0');
+    disp.className   = 'timer-display';
+
+    bar.style.width = pct + '%';
+
+    if (secondsLeft <= 120) {
+        disp.classList.add('warn');
+        bar.style.background = 'var(--warn)';
+    }
+    if (secondsLeft <= 30) {
+        disp.classList.remove('warn');
+        disp.classList.add('danger');
+        bar.style.background = 'var(--danger)';
+    }
+    if (secondsLeft <= 0) {
+        clearInterval(timerInterval);
+        document.getElementById('sim-form').submit();
+    }
+    secondsLeft--;
+}
+
+const timerInterval = setInterval(updateTimer, 1000);
+updateTimer();
+
+// ─── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(idx) {
+    document.querySelectorAll('.scenario-card').forEach(function(c, i) {
+        c.classList.toggle('active', i === idx);
+    });
+    document.querySelectorAll('.scenario-tab').forEach(function(t, i) {
+        t.classList.toggle('active', i === idx);
+    });
+}
+
+// ─── Voice recognition ─────────────────────────────────────────────────────────
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let simRecognition = null;
+let simListening   = false;
+let simTranscript  = '';
+
+if (SR) {
+    simRecognition = new SR();
+    simRecognition.continuous     = true;
+    simRecognition.interimResults = true;
+    simRecognition.lang           = 'en-US';
+
+    simRecognition.onresult = function(e) {
+        let interim = '';
+        let final   = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+            const t = e.results[i][0].transcript;
+            if (e.results[i].isFinal) final += t + ' ';
+            else interim += t;
+        }
+        if (final) simTranscript += final;
+        document.getElementById('sim-answer').value = simTranscript + interim;
+        updateSimCount();
+    };
+
+    simRecognition.onend = function() {
+        if (simListening) {
+            try { simRecognition.start(); } catch(e) {}
+        }
+    };
+
+    simRecognition.onerror = function() {
+        stopSimRecording();
+    };
+}
+
+function toggleRecording() {
+    simListening ? stopSimRecording() : startSimRecording();
+}
+
+function startSimRecording() {
+    if (!SR) { alert('Voice input not supported in this browser. Please use Chrome.'); return; }
+    simTranscript = document.getElementById('sim-answer').value;
+    if (simTranscript && !simTranscript.endsWith(' ')) simTranscript += ' ';
+    simListening = true;
+    try { simRecognition.start(); } catch(e) {}
+
+    const btn  = document.getElementById('voice-btn');
+    const wave = document.getElementById('waveform-mini');
+    btn.textContent = '⏹ Stop Recording';
+    btn.classList.add('recording');
+    wave.classList.add('active');
+
+    document.querySelectorAll('.mini-bar').forEach(function(b) {
+        b.classList.add('pulse');
+    });
+}
+
+function stopSimRecording() {
+    simListening = false;
+    if (simRecognition) { try { simRecognition.stop(); } catch(e) {} }
+
+    const btn  = document.getElementById('voice-btn');
+    const wave = document.getElementById('waveform-mini');
+    btn.textContent = '🎙️ Start Voice Input';
+    btn.classList.remove('recording');
+    wave.classList.remove('active');
+
+    document.querySelectorAll('.mini-bar').forEach(function(b) {
+        b.classList.remove('pulse');
+    });
+}
+
+// ─── Char count ─────────────────────────────────────────────────────────────────
+function updateSimCount() {
+    const len = document.getElementById('sim-answer').value.length;
+    const el  = document.getElementById('sim-char-count');
+    el.textContent  = len + ' chars';
+    el.className    = len >= 300 ? 'char-good' : '';
+}
+
+// ─── Form submit ────────────────────────────────────────────────────────────────
+document.getElementById('sim-form').addEventListener('submit', function() {
+    if (simListening) stopSimRecording();
+    clearInterval(timerInterval);
+    const btn = document.getElementById('sim-submit');
+    btn.disabled    = true;
+    btn.innerHTML   = '<span class="spinner-inline"></span> Submitting & evaluating…';
+});
+</script>
+</body>
+</html>

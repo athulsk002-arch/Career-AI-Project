@@ -6,32 +6,152 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="stylesheet" href="/static/style.css">
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f172a;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Branding */
+.brand {
+    position: absolute;
+    top: 20px;
+    left: 30px;
+    color: white;
+}
+
+.brand h1 {
+    margin: 0;
+    font-size: 22px;
+    background: linear-gradient(90deg, #ff4d4d, #ff6a6a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.brand span {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* Glass Container */
+.container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    padding: 35px;
+    width: 320px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Heading */
+h2 {
+    color: white;
+    margin-bottom: 20px;
+}
+
+/* Labels */
+label {
+    font-size: 13px;
+    color: #cbd5f5;
+    display: block;
+    text-align: left;
+    margin-top: 10px;
+}
+
+/* Inputs */
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: white;
+    outline: none;
+    transition: 0.3s;
+}
+
+/* Input focus */
+input:focus {
+    border-color: #ff4d4d;
+    box-shadow: 0 0 8px rgba(255,77,77,0.5);
+}
+
+/* Button */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background: linear-gradient(90deg, #ff4d4d, #ff6a6a);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* Button hover */
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(255,77,77,0.4);
+}
+
+/* Link */
+a {
+    display: block;
+    margin-top: 15px;
+    color: #ff6a6a;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+</style>
 
 </head>
 
 <body>
 
+<!-- Branding -->
+<div class="brand">
+    <h1>SkillNova AI</h1>
+    <span>Adaptive Skill Assessment & Career Simulation</span>
+</div>
+
+<!-- Register Card -->
+<div class="container">
+
 <h2>Create Account</h2>
 
 <form method="POST">
 
-<label>Name</label><br>
-<input type="text" name="name" required><br><br>
+<label>Name</label>
+<input type="text" name="name" required>
 
-<label>Email</label><br>
-<input type="email" name="email" required><br><br>
+<label>Email</label>
+<input type="email" name="email" required>
 
-<label>Password</label><br>
-<input type="password" name="password" required><br><br>
+<label>Password</label>
+<input type="password" name="password" required>
 
 <button type="submit">Register</button>
 
 </form>
 
-<br>
-
 <a href="/">Back to Login</a>
+
+</div>
 
 </body>
 </html>

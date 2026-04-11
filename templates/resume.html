@@ -3,21 +3,122 @@
 
 <head>
 <title>Resume Analyzer</title>
+
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f172a;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Branding */
+.brand {
+    position: absolute;
+    top: 20px;
+    left: 30px;
+    color: white;
+}
+
+.brand h1 {
+    margin: 0;
+    font-size: 22px;
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.brand span {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* Glass Container */
+.container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    padding: 40px;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Heading */
+h2 {
+    color: white;
+    margin-bottom: 20px;
+}
+
+/* File Input */
+input[type="file"] {
+    margin: 15px 0;
+    padding: 12px;
+    width: 100%;
+    border: 2px dashed rgba(34,197,94,0.6);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    color: #cbd5f5;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* Hover effect */
+input[type="file"]:hover {
+    border-color: #22c55e;
+    box-shadow: 0 0 10px rgba(34,197,94,0.4);
+}
+
+/* Button */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* Button hover */
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(34,197,94,0.4);
+}
+</style>
+
 </head>
 
 <body>
 
-<h2>Upload Your Resume</h2>
+<!-- Branding -->
+<div class="brand">
+    <h1>SkillNova AI</h1>
+    <span>Adaptive Skill Assessment & Career Simulation</span>
+</div>
 
-<form action="/analyze_resume" method="POST" enctype="multipart/form-data">
+<!-- Upload Card -->
+<div class="container">
 
-<input type="file" name="resume" required>
+    <h2>Upload Your Resume</h2>
 
-<br><br>
+    <form action="/analyze_resume" method="POST" enctype="multipart/form-data">
 
-<button type="submit">Analyze Resume</button>
+        <input type="file" name="resume" required>
 
-</form>
+        <button type="submit">Analyze Resume</button>
+
+    </form>
+
+</div>
 
 </body>
 
