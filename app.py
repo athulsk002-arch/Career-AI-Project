@@ -956,6 +956,55 @@ def assessment_result():
         overall=data.get("overall_score", 0),
     )
 
+# ─────────────────────────────────────────────────────────────────────────────
+# INTERVIEW ROUND CONFIG  — paste above the /interview route
+# ─────────────────────────────────────────────────────────────────────────────
+
+ROUND_TYPES = {
+    1: "self_introduction",
+    2: "technical",
+    3: "behavioural",
+    4: "scenario",
+}
+
+INTERVIEW_FALLBACKS = {
+    "software developer": {
+        "self_introduction": "Please introduce yourself. Tell me about your background, your strongest technical skills as a software developer, any notable projects you have worked on, and what draws you to this role.",
+        "technical":         "Explain the difference between a stack and a queue. Give a real-world example where you would choose one over the other.",
+        "behavioural":       "Tell me about a time you had to debug a particularly tricky issue. How did you approach it, and what did you learn?",
+        "scenario":          "Imagine you are halfway through a sprint and discover a core feature you have built will not work due to an unknown dependency. How would you handle this?",
+    },
+    "full stack developer": {
+        "self_introduction": "Please introduce yourself. Walk me through your full-stack experience, the frontend and backend technologies you are most confident with, a project you are proud of, and why you want to work as a full stack developer.",
+        "technical":         "Explain how you would design a secure login system from scratch. Cover both the frontend and backend, and mention at least two security measures.",
+        "behavioural":       "Describe a time when you had to balance frontend and backend work simultaneously under a tight deadline. How did you prioritise?",
+        "scenario":          "Your React app is loading very slowly on mobile with an 8-second FCP, but all backend APIs respond in under 200ms. How would you diagnose and fix this?",
+    },
+    "web developer": {
+        "self_introduction": "Please introduce yourself. Tell me about your experience with HTML, CSS, and JavaScript, the types of websites you have built, and what motivates you as a web developer.",
+        "technical":         "What is the CSS box model? Explain each layer and describe a common bug caused by misunderstanding it.",
+        "behavioural":       "Tell me about a time you received critical design feedback from a client after you had already built the page. How did you handle it?",
+        "scenario":          "A client wants their website to load in under 2 seconds but the current load time is 7 seconds. What steps would you take to optimise it?",
+    },
+    "data analyst": {
+        "self_introduction": "Please introduce yourself. Tell me about your experience with data analysis, the tools you use most such as SQL, Python, or Excel, a project where your analysis drove a business decision, and what you enjoy most about working with data.",
+        "technical":         "Explain the difference between INNER JOIN, LEFT JOIN, and FULL OUTER JOIN in SQL. When would you use each?",
+        "behavioural":       "Tell me about a time your analysis uncovered something unexpected. How did you validate it was real and not a data error?",
+        "scenario":          "Your manager asks you to analyse why sales dropped 30 percent last quarter. You have access to sales, marketing, and customer data. Walk me through your approach from start to finish.",
+    },
+    "cyber security": {
+        "self_introduction": "Please introduce yourself. Tell me about your background in cybersecurity, the areas you specialise in, any certifications or notable projects, and what draws you to this field.",
+        "technical":         "Explain what SQL injection is, how it works, and describe three ways to prevent it in a web application.",
+        "behavioural":       "Tell me about a time you had to explain a serious security risk to a non-technical stakeholder. How did you communicate the urgency without causing panic?",
+        "scenario":          "At 3am you receive an alert that an internal server is sending unusual outbound traffic to an unknown IP. No one else is available. Walk me through your step-by-step incident response.",
+    },
+    "ui/ux designer": {
+        "self_introduction": "Please introduce yourself. Tell me about your design background, the tools you work with such as Figma, a project you are most proud of, and what your design philosophy is.",
+        "technical":         "Walk me through your design process from receiving a brief to delivering a final design. What steps do you never skip and why?",
+        "behavioural":       "Tell me about a time when user research revealed your design assumptions were wrong. How did you respond and what changed?",
+        "scenario":          "A product manager wants to add 5 new features to the homepage in the next release. You believe this will hurt the user experience. How do you handle this disagreement?",
+    },
+}
 
 # ─────────────────────────────────────────────
 # INTERVIEW
@@ -972,7 +1021,7 @@ def interview():
     round_n          = session.get("interview_round", 1)
     assessment_data  = session.get("assessment_data", {})
     assessment_score = assessment_data.get("overall_score", 50) if assessment_data else 50
-    total_rounds     = 4   # Intro + Technical + Behavioural + Scenario
+    total_rounds     = 4
 
     if round_n > total_rounds:
         return redirect("/simulation")
