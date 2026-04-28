@@ -5,246 +5,620 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mock Interview</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+        :root {
+            --bg: #0d0f14;
+            --surface: #161920;
+            --surface2: #1e2230;
+            --border: #2a2f3d;
+            --accent: #6c63ff;
+            --accent2: #4ecdc4;
+            --text: #e8eaf0;
+            --muted: #6b7280;
+            --danger: #ff6b6b;
+            --success: #4ecdc4;
+            --warn: #ffd166;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f0f4f8;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
             min-height: 100vh;
-            padding: 40px 20px;
-            color: #1a1a2e;
+            color: var(--text);
+            padding: 32px 20px 60px;
         }
 
-        .container { max-width: 680px; margin: 0 auto; }
+        .container { max-width: 700px; margin: 0 auto; }
 
-        /* Progress */
+        /* ── Role badge ── */
+        .top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(108,99,255,0.15);
+            border: 1px solid rgba(108,99,255,0.3);
+            color: #a89cff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 20px;
+            text-transform: capitalize;
+            letter-spacing: 0.03em;
+        }
+
+        .round-tag {
+            font-size: 12px;
+            color: var(--muted);
+            font-family: 'DM Mono', monospace;
+        }
+
+        /* ── Progress ── */
         .progress-wrap { margin-bottom: 28px; }
 
-        .progress-label {
+        .progress-steps {
             display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 8px;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
-        .progress-label strong { color: #4f46e5; }
-
-        .progress-bar {
-            height: 6px;
-            background: #e5e7eb;
-            border-radius: 3px;
+        .step-dot {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border);
+            transition: background 0.4s ease;
+            position: relative;
             overflow: hidden;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: #4f46e5;
-            border-radius: 3px;
-            transition: width 0.4s ease;
+        .step-dot.done     { background: var(--accent2); }
+        .step-dot.active   { background: var(--accent); }
+        .step-dot.active::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 1.5s infinite;
         }
 
-        .dots {
+        @keyframes shimmer {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-labels {
             display: flex;
-            gap: 8px;
-            margin-top: 10px;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--muted);
         }
 
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #e5e7eb;
-        }
-
-        .dot.done { background: #4f46e5; }
-        .dot.active { background: #818cf8; }
-
-        /* Role badge */
-        .role-badge {
-            display: inline-block;
-            background: #ede9fe;
-            color: #4f46e5;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 12px;
-            border-radius: 20px;
-            text-transform: capitalize;
-            margin-bottom: 20px;
-        }
-
-        /* Feedback from last round */
-        .last-feedback {
-            background: #fff;
-            border-left: 4px solid #4f46e5;
-            border-radius: 0 10px 10px 0;
-            padding: 14px 18px;
-            margin-bottom: 20px;
-            border: 0.5px solid #e5e7eb;
-            border-left: 4px solid #4f46e5;
-        }
-
-        .last-feedback .fb-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 6px;
-        }
-
-        .score-line {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
-        }
-
-        .score-pill {
-            font-size: 13px;
-            font-weight: 700;
-            padding: 2px 10px;
-            border-radius: 20px;
-        }
-
-        .score-pill.high   { background: #d1fae5; color: #065f46; }
-        .score-pill.mid    { background: #fef3c7; color: #92400e; }
-        .score-pill.low    { background: #fee2e2; color: #991b1b; }
-
-        .fb-text { font-size: 14px; color: #374151; line-height: 1.5; }
-
-        /* Question card */
+        /* ── Card ── */
         .card {
-            background: #fff;
-            border-radius: 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
             padding: 28px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             margin-bottom: 16px;
         }
 
-        .card h2 {
-            font-size: 13px;
+        .card-label {
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: #6b7280;
-            margin-bottom: 14px;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .question-text {
-            font-size: 18px;
+        /* ── Interview type badge ── */
+        .type-badge {
+            display: inline-block;
+            font-size: 11px;
             font-weight: 600;
-            color: #1a1a2e;
-            line-height: 1.5;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        textarea {
-            width: 100%;
-            min-height: 160px;
-            padding: 14px;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: 'Segoe UI', sans-serif;
-            color: #1a1a2e;
-            resize: vertical;
-            outline: none;
-            transition: border-color 0.2s;
-            line-height: 1.6;
+        .type-intro    { background: rgba(255,209,102,0.15); color: var(--warn);    border: 1px solid rgba(255,209,102,0.3); }
+        .type-tech     { background: rgba(108,99,255,0.15);  color: #a89cff;         border: 1px solid rgba(108,99,255,0.3); }
+        .type-behavior { background: rgba(78,205,196,0.15);  color: var(--accent2);  border: 1px solid rgba(78,205,196,0.3); }
+        .type-scenario { background: rgba(255,107,107,0.15); color: #ff9f9f;         border: 1px solid rgba(255,107,107,0.3); }
+
+        /* ── Question ── */
+        .question-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.55;
+            margin-bottom: 6px;
         }
 
-        textarea:focus { border-color: #4f46e5; }
-
-        .char-count {
-            text-align: right;
-            font-size: 12px;
-            color: #9ca3af;
-            margin-top: 6px;
-        }
-
-        .hint {
+        .question-hint {
             font-size: 13px;
-            color: #9ca3af;
+            color: var(--muted);
+            line-height: 1.5;
+            margin-top: 8px;
+            padding: 10px 14px;
+            background: var(--surface2);
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* ── Voice recorder ── */
+        .voice-section {
             margin-top: 8px;
         }
 
-        .btn {
-            display: inline-block;
-            padding: 12px 28px;
+        .voice-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .voice-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .voice-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--muted);
+            cursor: pointer;
+            background: var(--surface2);
+            border: 1px solid var(--border);
             border-radius: 8px;
-            font-size: 15px;
+            padding: 5px 12px;
+            transition: all 0.2s;
+        }
+
+        .voice-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Waveform visualizer */
+        .waveform-container {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 14px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .waveform-container.active { display: flex; }
+
+        .waveform {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            height: 48px;
+        }
+
+        .wave-bar {
+            width: 4px;
+            border-radius: 2px;
+            background: var(--accent);
+            height: 8px;
+            transition: height 0.1s ease;
+        }
+
+        .wave-bar.listening {
+            animation: wave-pulse 0.6s ease-in-out infinite;
+        }
+
+        @keyframes wave-pulse {
+            0%, 100% { height: 8px; }
+            50%       { height: 38px; }
+        }
+
+        .wave-bar:nth-child(odd)  { animation-delay: 0s;    }
+        .wave-bar:nth-child(even) { animation-delay: 0.15s; }
+        .wave-bar:nth-child(3n)   { animation-delay: 0.3s;  }
+
+        .voice-status {
+            font-size: 13px;
+            font-family: 'DM Mono', monospace;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .voice-status.listening { color: var(--danger); }
+        .voice-status.done      { color: var(--accent2); }
+
+        .voice-controls {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-mic {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
             font-weight: 600;
             border: none;
             cursor: pointer;
-            width: 100%;
-            margin-top: 12px;
-            background: #4f46e5;
-            color: #fff;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
         }
 
-        .btn:hover { background: #4338ca; }
-        .btn:disabled { background: #a5b4fc; cursor: not-allowed; }
+        .btn-mic-start {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .btn-mic-start:hover { background: #e55555; transform: scale(1.02); }
+
+        .btn-mic-stop {
+            background: var(--surface);
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-mic-stop:hover  { border-color: var(--muted); }
+        .btn-mic-stop:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ── Textarea ── */
+        .answer-wrap { position: relative; }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 16px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+            line-height: 1.7;
+        }
+
+        textarea:focus { border-color: var(--accent); }
+
+        textarea::placeholder { color: #3d4457; }
+
+        .answer-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .char-count {
+            font-size: 12px;
+            font-family: 'DM Mono', monospace;
+            color: var(--muted);
+        }
+
+        .char-count.good { color: var(--accent2); }
+
+        .answer-tip {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* ── Feedback card ── */
+        .feedback-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+        }
+
+        .feedback-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .score-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .score-badge.high { background: rgba(78,205,196,0.2);  color: var(--accent2); border: 2px solid rgba(78,205,196,0.4); }
+        .score-badge.mid  { background: rgba(255,209,102,0.2); color: var(--warn);    border: 2px solid rgba(255,209,102,0.4); }
+        .score-badge.low  { background: rgba(255,107,107,0.2); color: var(--danger);  border: 2px solid rgba(255,107,107,0.4); }
+
+        .feedback-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--muted);
+        }
+
+        .feedback-text {
+            font-size: 14px;
+            color: #b0b8cc;
+            line-height: 1.6;
+        }
+
+        /* ── Submit button ── */
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--accent), #8b7fff);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(108,99,255,0.35); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* ── Tips panel ── */
+        .tips-panel {
+            background: rgba(108,99,255,0.06);
+            border: 1px solid rgba(108,99,255,0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+        }
+
+        .tips-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #a89cff;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 10px;
+        }
+
+        .tip-item {
+            font-size: 13px;
+            color: #8b93a8;
+            padding: 4px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.5;
+        }
+
+        .tip-item::before {
+            content: '→';
+            color: var(--accent);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ── Browser warning ── */
+        .browser-warn {
+            background: rgba(255,209,102,0.08);
+            border: 1px solid rgba(255,209,102,0.25);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: var(--warn);
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .browser-warn.show { display: block; }
+
+        /* ── Spinner ── */
+        .spinner-inline {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 <div class="container">
 
-    <span class="role-badge">{{ role }}</span>
+    <!-- Top row -->
+    <div class="top-row">
+        <span class="role-badge">🎯 {{ role }}</span>
+        <span class="round-tag">ROUND {{ round_number }} / {{ total_rounds }}</span>
+    </div>
 
-    <!-- Progress -->
+    <!-- Progress steps -->
     <div class="progress-wrap">
-        <div class="progress-label">
-            <span>Mock Interview</span>
-            <strong>Round {{ round_number }} of {{ total_rounds }}</strong>
-        </div>
-        <div class="progress-bar">
-           <div class="progress-fill" id="progress-fill"></div>
-        </div>
-        <div class="dots">
+        <div class="progress-steps">
             {% for i in range(1, total_rounds + 1) %}
-                <div class="dot {% if i < round_number %}done{% elif i == round_number %}active{% endif %}"></div>
+            <div class="step-dot {% if i < round_number %}done{% elif i == round_number %}active{% endif %}"></div>
             {% endfor %}
+        </div>
+        <div class="progress-labels">
+            <span>Introduction</span>
+            <span>Technical</span>
+            <span>Behavioural</span>
+            <span>Scenario</span>
         </div>
     </div>
 
     <!-- Feedback from previous round -->
     {% if last_score is not none %}
-    <div class="last-feedback">
-        <div class="fb-label">Previous answer feedback</div>
-        <div class="score-line">
-            <span class="score-pill {% if last_score >= 7 %}high{% elif last_score >= 5 %}mid{% else %}low{% endif %}">
+    <div class="feedback-card">
+        <div class="feedback-header">
+            <div class="score-badge {% if last_score >= 7 %}high{% elif last_score >= 5 %}mid{% else %}low{% endif %}">
                 {{ last_score }}/10
-            </span>
+            </div>
+            <div>
+                <div class="feedback-label">Previous answer feedback</div>
+            </div>
         </div>
-        <div class="fb-text">{{ last_feedback }}</div>
+        <div class="feedback-text">{{ last_feedback }}</div>
     </div>
     {% endif %}
 
-    <!-- Question -->
+    <!-- Question card -->
     <div class="card">
-        <h2>Question {{ round_number }}</h2>
+        <div class="card-label">
+            <span>💬</span>
+            <span>Interview Question · Round {{ round_number }}</span>
+        </div>
+
+        <!-- Question type badge -->
+        {% if round_number == 1 %}
+            <span class="type-badge type-intro">👋 Self Introduction</span>
+        {% elif round_number == 2 %}
+            <span class="type-badge type-tech">⚙️ Technical</span>
+        {% elif round_number == 3 %}
+            <span class="type-badge type-behavior">🤝 Behavioural</span>
+        {% else %}
+            <span class="type-badge type-scenario">🧩 Scenario</span>
+        {% endif %}
+
         <div class="question-text">{{ question }}</div>
+
+        {% if round_number == 1 %}
+        <div class="question-hint">
+            Introduce yourself clearly: your name, background, years of experience (or current study), 
+            key technical skills, notable projects or achievements, and why you're interested in this role.
+        </div>
+        {% endif %}
     </div>
 
-    <!-- Answer form -->
+    <!-- Tips panel -->
+    {% if round_number == 1 %}
+    <div class="tips-panel">
+        <div class="tips-title">💡 Introduction Tips</div>
+        <div class="tip-item">Start with your name, background and current status (student/professional)</div>
+        <div class="tip-item">Mention 2–3 of your strongest technical skills relevant to {{ role }}</div>
+        <div class="tip-item">Share one concrete project, achievement, or experience</div>
+        <div class="tip-item">End with why you're excited about this specific role</div>
+    </div>
+    {% elif round_number == 2 %}
+    <div class="tips-panel">
+        <div class="tips-title">💡 Technical Answer Tips</div>
+        <div class="tip-item">Be precise — use correct technical terms and concepts</div>
+        <div class="tip-item">Give a real example or use-case from your experience</div>
+        <div class="tip-item">Explain your thought process, not just the answer</div>
+    </div>
+    {% elif round_number == 3 %}
+    <div class="tips-panel">
+        <div class="tips-title">💡 Behavioural Answer Tips (STAR method)</div>
+        <div class="tip-item">Situation — briefly describe the context</div>
+        <div class="tip-item">Task — explain your responsibility</div>
+        <div class="tip-item">Action — describe what YOU specifically did</div>
+        <div class="tip-item">Result — share the measurable outcome</div>
+    </div>
+    {% else %}
+    <div class="tips-panel">
+        <div class="tips-title">💡 Scenario Tips</div>
+        <div class="tip-item">Think out loud — walk through your reasoning step by step</div>
+        <div class="tip-item">Show how you'd prioritise, delegate, or resolve the situation</div>
+        <div class="tip-item">Mention any tools, frameworks, or processes you'd use</div>
+    </div>
+    {% endif %}
+
+    <!-- Answer card -->
     <div class="card">
-        <h2>Your Answer</h2>
-        <form method="POST" action="/interview">
-            <textarea
-                name="answer"
-                id="answer"
-                placeholder="Type your answer here. Be as detailed as possible — the AI evaluates the quality of your explanation, not just length."
-                oninput="updateCount(this)"
-                required
-            ></textarea>
-            <div class="char-count"><span id="char-count">0</span> characters</div>
-            <p class="hint">Tip: Aim for at least 100 characters. Use specific examples where possible.</p>
-            <button type="submit" class="btn" id="submit-btn">
+        <div class="card-label">✍️ Your Answer</div>
+
+        <!-- Browser warning for non-Chrome -->
+        <div class="browser-warn" id="browser-warn">
+            ⚠️ Voice recognition works best in Chrome or Edge. You can still type your answer below.
+        </div>
+
+        <!-- Voice section -->
+        <div class="voice-section">
+            <div class="voice-header">
+                <span class="voice-title">🎙️ Voice Input</span>
+                <button class="voice-toggle" onclick="toggleVoiceUI()" id="voice-toggle-btn">
+                    <span id="voice-toggle-icon">▼</span> Show voice recorder
+                </button>
+            </div>
+
+            <div class="waveform-container" id="waveform-container">
+                <div class="waveform" id="waveform">
+                    {% for i in range(16) %}
+                    <div class="wave-bar" id="bar-{{ i }}"></div>
+                    {% endfor %}
+                </div>
+                <div class="voice-status" id="voice-status">Click "Start Recording" to speak your answer</div>
+                <div class="voice-controls">
+                    <button class="btn-mic btn-mic-start" id="btn-start-mic" onclick="startListening()">
+                        🎙️ Start Recording
+                    </button>
+                    <button class="btn-mic btn-mic-stop" id="btn-stop-mic" onclick="stopListening()" disabled>
+                        ⏹ Stop
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" action="/interview" id="interview-form">
+            <div class="answer-wrap">
+                <textarea
+                    name="answer"
+                    id="answer"
+                    placeholder="Speak using the recorder above, or type your answer here...&#10;&#10;Be detailed and specific. The AI evaluates the quality of your explanation."
+                    oninput="updateCharCount()"
+                    required
+                ></textarea>
+            </div>
+            <div class="answer-meta">
+                <span class="char-count" id="char-count">0 characters</span>
+                <span class="answer-tip">Aim for 150+ characters for a strong answer</span>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submit-btn" style="margin-top:16px">
                 {% if round_number < total_rounds %}
                     Submit &amp; Next Question →
                 {% else %}
-                    Submit &amp; Continue to Simulation →
+                    Submit &amp; Go to Simulation →
                 {% endif %}
             </button>
         </form>
@@ -253,18 +627,214 @@
 </div>
 
 <script>
-function updateCount(el) {
-    document.getElementById('char-count').textContent = el.value.length;
+// ─── Speech Recognition Setup ─────────────────────────────────────────────────
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isListening = false;
+let fullTranscript = '';
+let waveAnimFrames = [];
+
+// Check browser support
+if (!SpeechRecognition) {
+    document.getElementById('browser-warn').classList.add('show');
+    document.getElementById('voice-toggle-btn').style.opacity = '0.5';
+    document.getElementById('voice-toggle-btn').style.pointerEvents = 'none';
+} else {
+    recognition = new SpeechRecognition();
+    recognition.continuous      = true;
+    recognition.interimResults  = true;
+    recognition.lang            = 'en-US';
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = function() {
+        isListening = true;
+        setMicUI('listening');
+    };
+
+    recognition.onresult = function(event) {
+        let interim = '';
+        let final   = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                final += transcript + ' ';
+            } else {
+                interim += transcript;
+            }
+        }
+
+        if (final) fullTranscript += final;
+
+        const textarea = document.getElementById('answer');
+        textarea.value = fullTranscript + interim;
+        updateCharCount();
+    };
+
+    recognition.onerror = function(e) {
+        if (e.error === 'not-allowed') {
+            document.getElementById('voice-status').textContent = '❌ Microphone access denied. Please allow mic permission.';
+        } else if (e.error === 'no-speech') {
+            document.getElementById('voice-status').textContent = '🔇 No speech detected. Try again.';
+        } else {
+            document.getElementById('voice-status').textContent = '⚠️ Error: ' + e.error;
+        }
+        stopListening();
+    };
+
+    recognition.onend = function() {
+        if (isListening) {
+            // Auto-restart if still supposed to be listening
+            try { recognition.start(); } catch(e) {}
+        } else {
+            setMicUI('stopped');
+        }
+    };
 }
 
-document.querySelector('form').addEventListener('submit', function() {
+function startListening() {
+    if (!recognition) return;
+    fullTranscript = document.getElementById('answer').value;
+    if (fullTranscript && !fullTranscript.endsWith(' ')) fullTranscript += ' ';
+
+    try {
+        recognition.start();
+    } catch(e) {
+        // already started
+    }
+    animateWave(true);
+}
+
+function stopListening() {
+    isListening = false;
+    if (recognition) {
+        try { recognition.stop(); } catch(e) {}
+    }
+    animateWave(false);
+    setMicUI('stopped');
+}
+
+function setMicUI(state) {
+    const statusEl = document.getElementById('voice-status');
+    const startBtn = document.getElementById('btn-start-mic');
+    const stopBtn  = document.getElementById('btn-stop-mic');
+    const bars     = document.querySelectorAll('.wave-bar');
+
+    if (state === 'listening') {
+        statusEl.textContent = '🔴 Recording… speak your answer now';
+        statusEl.className   = 'voice-status listening';
+        startBtn.disabled    = true;
+        stopBtn.disabled     = false;
+        bars.forEach(function(b) { b.classList.add('listening'); });
+    } else {
+        const hasText = document.getElementById('answer').value.trim().length > 0;
+        statusEl.textContent = hasText ? '✓ Transcription complete — review and edit below' : 'Recording stopped.';
+        statusEl.className   = 'voice-status done';
+        startBtn.disabled    = false;
+        stopBtn.disabled     = true;
+        bars.forEach(function(b) { b.classList.remove('listening'); });
+    }
+}
+
+// ─── Waveform animation (audio context based) ─────────────────────────────────
+let audioCtx = null;
+let analyser = null;
+let micStream = null;
+let animFrame = null;
+
+function animateWave(start) {
+    if (!start) {
+        if (animFrame) cancelAnimationFrame(animFrame);
+        if (micStream) micStream.getTracks().forEach(function(t) { t.stop(); });
+        resetBars();
+        return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+            micStream = stream;
+            audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+            analyser  = audioCtx.createAnalyser();
+            analyser.fftSize = 64;
+
+            const source = audioCtx.createMediaStreamSource(stream);
+            source.connect(analyser);
+
+            const data = new Uint8Array(analyser.frequencyBinCount);
+
+            function draw() {
+                animFrame = requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(data);
+
+                for (let i = 0; i < 16; i++) {
+                    const bar = document.getElementById('bar-' + i);
+                    if (!bar) continue;
+                    bar.classList.remove('listening');
+                    const val = data[i] || 0;
+                    const h   = Math.max(4, Math.min(44, Math.round(val / 5)));
+                    bar.style.height = h + 'px';
+                    bar.style.background = h > 20
+                        ? 'var(--danger)'
+                        : (h > 10 ? 'var(--accent)' : 'var(--border)');
+                }
+            }
+            draw();
+        })
+        .catch(function() {
+            // Fallback: CSS animation only
+            document.querySelectorAll('.wave-bar').forEach(function(b) {
+                b.classList.add('listening');
+            });
+        });
+}
+
+function resetBars() {
+    for (let i = 0; i < 16; i++) {
+        const bar = document.getElementById('bar-' + i);
+        if (bar) { bar.style.height = '8px'; bar.style.background = 'var(--accent)'; }
+    }
+}
+
+// ─── Voice UI toggle ──────────────────────────────────────────────────────────
+let voiceVisible = false;
+
+function toggleVoiceUI() {
+    voiceVisible = !voiceVisible;
+    const container = document.getElementById('waveform-container');
+    const icon      = document.getElementById('voice-toggle-icon');
+    const btn       = document.getElementById('voice-toggle-btn');
+
+    if (voiceVisible) {
+        container.classList.add('active');
+        icon.textContent = '▲';
+        btn.querySelector('span:last-child') && (btn.lastChild.textContent = ' Hide voice recorder');
+    } else {
+        container.classList.remove('active');
+        icon.textContent = '▼';
+        if (isListening) stopListening();
+    }
+}
+
+// ─── Char count ───────────────────────────────────────────────────────────────
+function updateCharCount() {
+    const len = document.getElementById('answer').value.length;
+    const el  = document.getElementById('char-count');
+    el.textContent = len + ' characters';
+    el.className   = 'char-count' + (len >= 150 ? ' good' : '');
+}
+
+// ─── Form submit ──────────────────────────────────────────────────────────────
+document.getElementById('interview-form').addEventListener('submit', function() {
+    if (isListening) stopListening();
     const btn = document.getElementById('submit-btn');
     btn.disabled = true;
-    btn.textContent = 'Evaluating your answer...';
+    btn.innerHTML = '<span class="spinner-inline"></span> Evaluating your answer…';
 });
-</script>
-<script>
-document.getElementById('progress-fill').style.width = '{{ (round_number / total_rounds * 100) | int }}%';
+
+// ─── Progress bar width ───────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    // Nothing needed — step dots handle progress
+});
 </script>
 </body>
 </html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login — SkillNova AI</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .brand {
+            position: absolute;
+            top: 20px;
+            left: 28px;
+        }
+        .brand h1 {
+            font-size: 20px;
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+        .brand span { font-size: 11px; color: #64748b; }
+
+        .container {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 40px;
+            width: 360px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .shield { font-size: 48px; margin-bottom: 16px; }
+
+        h2 { color: #f1f5f9; font-size: 22px; margin-bottom: 6px; }
+        .sub { font-size: 13px; color: #64748b; margin-bottom: 28px; }
+
+        label {
+            display: block;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+            margin-top: 16px;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #f1f5f9;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus { border-color: #f59e0b; }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 24px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .error {
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #fca5a5;
+            font-size: 13px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .back { display: block; margin-top: 20px; font-size: 13px; color: #64748b; text-decoration: none; }
+        .back:hover { color: #94a3b8; }
+    </style>
+</head>
+<body>
+<div class="brand">
+    <h1>SkillNova AI</h1>
+    <span>Admin Portal</span>
+</div>
+
+<div class="container">
+    <div class="shield">🛡️</div>
+    <h2>Admin Access</h2>
+    <p class="sub">Sign in with your admin credentials.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="error">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <label>Email</label>
+        <input type="email" name="email" required>
+        <label>Password</label>
+        <input type="password" name="password" required>
+        <button type="submit">Sign In to Admin →</button>
+    </form>
+
+    <a href="/" class="back">← Back to main login</a>
+</div>
+</body>
+</html>

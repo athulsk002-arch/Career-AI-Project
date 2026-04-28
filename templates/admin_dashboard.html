@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — SkillNova AI</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 220px;
+            height: 100vh;
+            background: #1e293b;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            padding: 28px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .logo-sub {
+            font-size: 11px;
+            color: #475569;
+            margin-bottom: 32px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #94a3b8;
+            text-decoration: none;
+            margin-bottom: 4px;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255,255,255,0.06);
+            color: #f1f5f9;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+        }
+
+        .logout-btn {
+            display: block;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #ef4444;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+
+        .logout-btn:hover { background: rgba(239,68,68,0.1); }
+
+        /* ── Main ── */
+        .main {
+            margin-left: 220px;
+            padding: 36px 32px;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .page-header p {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* ── Stat cards ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        @media (max-width: 900px) { .stats-row { grid-template-columns: 1fr 1fr; } }
+
+        .stat-card {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #f1f5f9;
+            line-height: 1;
+        }
+
+        .stat-value.blue   { color: #60a5fa; }
+        .stat-value.green  { color: #34d399; }
+        .stat-value.yellow { color: #fbbf24; }
+        .stat-value.red    { color: #f87171; }
+
+        /* ── Section card ── */
+        .section-card {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-header h2 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .section-header span {
+            font-size: 12px;
+            color: #475569;
+        }
+
+        /* ── Table ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: #475569;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        td {
+            padding: 14px 20px;
+            font-size: 13px;
+            color: #94a3b8;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .user-name {
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .user-email { font-size: 12px; color: #475569; }
+
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        .badge-excellent { background: rgba(52,211,153,0.15); color: #34d399; }
+        .badge-good      { background: rgba(96,165,250,0.15); color: #60a5fa; }
+        .badge-average   { background: rgba(251,191,36,0.15); color: #fbbf24; }
+        .badge-poor      { background: rgba(248,113,113,0.15); color: #f87171; }
+        .badge-none      { background: rgba(100,116,139,0.15); color: #64748b; }
+
+        .view-link {
+            color: #60a5fa;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .view-link:hover { text-decoration: underline; }
+
+        /* ── Role distribution bars ── */
+        .role-bars { padding: 20px 24px; }
+
+        .role-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .role-bar-item:last-child { margin-bottom: 0; }
+
+        .role-bar-name {
+            width: 160px;
+            font-size: 13px;
+            color: #94a3b8;
+            text-transform: capitalize;
+            flex-shrink: 0;
+        }
+
+        .role-bar-track {
+            flex: 1;
+            height: 8px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .role-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00c6ff);
+            border-radius: 4px;
+        }
+
+        .role-bar-count {
+            font-size: 13px;
+            font-weight: 600;
+            color: #60a5fa;
+            min-width: 32px;
+            text-align: right;
+        }
+
+        .role-bar-avg {
+            font-size: 12px;
+            color: #475569;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .two-col-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 800px) { .two-col-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">SkillNova AI</div>
+    <div class="logo-sub">Admin Portal</div>
+
+    <div class="nav-label">Navigation</div>
+    <a href="/admin/dashboard" class="nav-item active">📊 Dashboard</a>
+    <a href="/" class="nav-item">🌐 Main Site</a>
+
+    <div class="sidebar-footer">
+        <a href="/admin/logout" class="logout-btn">← Logout</a>
+    </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+    <div class="page-header">
+        <h1>Admin Dashboard</h1>
+        <p>Platform overview — users, assessments, and career progress.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value blue">{{ total_users }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Assessments</div>
+            <div class="stat-value green">{{ total_results }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Career Paths Used</div>
+            <div class="stat-value yellow">{{ role_stats | length }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Avg per User</div>
+            <div class="stat-value red">
+                {% if total_users > 0 %}
+                    {{ (total_results / total_users) | round(1) }}
+                {% else %}0{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="two-col-grid">
+
+        <!-- Role distribution -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>Career Path Distribution</h2>
+            </div>
+            <div class="role-bars">
+                {% set max_count = role_stats[0].count if role_stats else 1 %}
+                {% for row in role_stats %}
+                <div class="role-bar-item">
+                    <div class="role-bar-name">{{ row.role }}</div>
+                    <div class="role-bar-track">
+                        <div class="role-bar-fill" style="width: {{ (row.count / max_count * 100) | int }}%"></div>
+                    </div>
+                    <div class="role-bar-count">{{ row.count }}</div>
+                    <div class="role-bar-avg">avg {{ row.avg_score | round(1) }}/10</div>
+                </div>
+                {% else %}
+                <div style="color:#475569;font-size:14px">No assessments yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>Recent Results</h2>
+                <span>Latest 10</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Score</th>
+                        <th>Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in recent_results[:10] %}
+                    <tr>
+                        <td>{{ r.user_name }}</td>
+                        <td style="text-transform:capitalize">{{ r.role }}</td>
+                        <td>{{ r.overall | round(1) }}/10</td>
+                        <td>
+                            {% set rating = r.rating or 'N/A' %}
+                            <span class="badge badge-{{ rating | lower | replace(' ', '-') | replace('needs-improvement', 'poor') }}">
+                                {{ rating }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" style="color:#475569">No results yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- All Users table -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2>All Users ({{ total_users }})</h2>
+            <span>Click a user to view their full history</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Joined</th>
+                    <th>Attempts</th>
+                    <th>Best Score</th>
+                    <th>Last Active</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td class="user-name">{{ u.name }}</td>
+                    <td class="user-email">{{ u.email }}</td>
+                    <td>{{ u.created_at[:10] if u.created_at else '—' }}</td>
+                    <td>{{ u.attempt_count }}</td>
+                    <td>
+                        {% if u.best_score %}
+                            {{ u.best_score | round(1) }}/10
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>{{ u.last_active[:10] if u.last_active else '—' }}</td>
+                    <td><a href="/admin/user/{{ u.id }}" class="view-link">View →</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" style="color:#475569">No users yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

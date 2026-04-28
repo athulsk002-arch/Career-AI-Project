@@ -93,10 +93,6 @@ def call_claude(prompt, max_tokens=1000):
 # ─────────────────────────────────────────────
 
 def ai_generate_mcq(role, level, count):
-    """
-    level: "basic" | "intermediate" | "critical"
-    Returns list of { question, options: {A,B,C,D}, correct }
-    """
     level_desc = {
         "basic":        f"fundamental, beginner-friendly questions about {role} concepts",
         "intermediate": f"applied, practical questions requiring working knowledge of {role}",
@@ -141,10 +137,6 @@ Respond ONLY with a valid JSON array, no extra text:
 
 
 def ai_generate_descriptive(role, count=3):
-    """
-    Generate practical programming/descriptive tasks.
-    Returns list of { question }
-    """
     prompt = f"""Generate exactly {count} practical programming or descriptive tasks for a {role} candidate.
 
 Rules:
@@ -278,6 +270,78 @@ Respond ONLY with JSON: {{"score": <1-10>, "feedback": "<two sentences>"}}"""
     if length > 150: return 7, "Good answer. Add specific examples next time."
     if length > 60:  return 5, "Decent response. Add more technical depth."
     return 3, "Too short. Explain your reasoning."
+
+
+# ─────────────────────────────────────────────
+# AI: Generate Final Report  ← FIXED (was missing)
+# ─────────────────────────────────────────────
+
+def ai_generate_report(role, interview_history, simulation_score, assessment_data):
+    """Generate a comprehensive final report for the candidate."""
+    overall_mcq = assessment_data.get("overall_score", 0) if assessment_data else 0
+    desc_avg    = assessment_data.get("desc_avg", 5) if assessment_data else 5
+
+    interview_avg = 0
+    if interview_history:
+        scores = [qa.get("score", 5) for qa in interview_history if isinstance(qa, dict)]
+        interview_avg = round(sum(scores) / len(scores), 1) if scores else 5
+
+    # Composite overall (out of 10)
+    overall = round(
+        (overall_mcq / 10) * 0.35 +
+        (desc_avg / 10) * 10 * 0.20 +
+        interview_avg * 0.25 +
+        simulation_score * 0.20,
+        1
+    )
+    overall = max(1, min(10, overall))
+
+    if overall >= 8:
+        rating   = "Excellent"
+        job_ready = "Yes — you appear job-ready for this role."
+        strengths = "Strong technical knowledge, clear communication, and solid problem-solving skills."
+        improvements = "Continue building on advanced topics and real-world project experience."
+    elif overall >= 6:
+        rating   = "Good"
+        job_ready = "Almost — a little more practice and you'll be ready."
+        strengths = "Good foundational knowledge with reasonable practical understanding."
+        improvements = "Focus on depth in technical areas and strengthen interview articulation."
+    elif overall >= 4:
+        rating   = "Average"
+        job_ready = "Not yet — more preparation needed."
+        strengths = "Some understanding of core concepts is present."
+        improvements = "Review fundamentals, practice coding problems, and work on communication."
+    else:
+        rating   = "Needs Improvement"
+        job_ready = "Not yet — significant study required before job applications."
+        strengths = "You've taken the first step by attempting this assessment."
+        improvements = "Start from basics, follow a structured learning path, and retake in 2–4 weeks."
+
+    # Try AI-generated summary
+    summary = None
+    prompt = f"""Write a 3-sentence professional evaluation summary for a {role} candidate.
+Scores: MCQ {overall_mcq}%, Descriptive {desc_avg}/10, Interview avg {interview_avg}/10, Simulation {simulation_score}/10.
+Overall rating: {rating}. Job ready: {job_ready}.
+Be constructive, specific to {role}, and encouraging. No bullet points."""
+
+    ai_summary = call_claude(prompt, max_tokens=200)
+    if ai_summary:
+        summary = ai_summary
+    else:
+        summary = (
+            f"This candidate demonstrated {rating.lower()} performance across the {role} assessment. "
+            f"The MCQ section scored {overall_mcq}% while the simulation scored {simulation_score}/10. "
+            f"{job_ready}"
+        )
+
+    return {
+        "overall":      overall,
+        "rating":       rating,
+        "job_ready":    job_ready,
+        "summary":      summary,
+        "strengths":    strengths,
+        "improvements": improvements,
+    }
 
 
 # ─────────────────────────────────────────────
@@ -486,7 +550,7 @@ def get_fallback_mcq(role, level, count):
         },
     }
 
-    role_bank = bank.get(role, bank["software developer"])
+    role_bank  = bank.get(role, bank["software developer"])
     level_bank = role_bank.get(level, role_bank["basic"])
     return level_bank[:count]
 
@@ -546,7 +610,7 @@ def score_mcq_level(answers_dict, questions, time_taken):
             "user_answer":      user_ans,
             "user_answer_text": q.get("options", {}).get(user_ans, "Skipped") if user_ans else "Skipped",
             "correct_answer":   q.get("correct", ""),
-            "correct_text":     q.get("options", {}).get(q.get("correct", ""), ""),  # ← fixed key name
+            "correct_text":     q.get("options", {}).get(q.get("correct", ""), ""),
             "correct":          is_correct,
             "skipped":          user_ans is None,
         })
@@ -566,10 +630,10 @@ def score_mcq_level(answers_dict, questions, time_taken):
         "review": review,
     }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 3. UPDATED INTERVIEW QUESTION GENERATOR  (replaces ai_generate_question)
-#    This version generates structured questions per round type
-# ─────────────────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────
+# INTERVIEW HELPERS
+# ─────────────────────────────────────────────
 
 ROUND_TYPES = {
     1: "self_introduction",
@@ -593,16 +657,14 @@ Respond with ONLY the question.""",
 Ask ONE specific, practical technical question relevant to {role} at {difficulty} level.
 - Focus on a core skill or concept for {role}
 - It should require real technical knowledge to answer well
-- Avoid yes/no questions — ask them to explain, describe, or demonstrate
+- Avoid yes/no questions
 - 1-2 sentences max
 Respond with ONLY the question.""",
 
     "behavioural": """You are interviewing a {role} candidate. This is a behavioural interview question.
 {history}
 Ask ONE behavioural question using the STAR format trigger for {role}.
-- Use phrases like "Tell me about a time when...", "Describe a situation where...", "Give me an example of..."
-- Focus on: teamwork, problem-solving, conflict resolution, meeting deadlines, or handling failure
-- Make it relevant to {role} work context
+- Use phrases like "Tell me about a time when...", "Describe a situation where..."
 - 1-2 sentences max
 Respond with ONLY the question.""",
 
@@ -610,7 +672,6 @@ Respond with ONLY the question.""",
 {history}
 Ask ONE scenario question: "What would you do if..." or "How would you handle..."
 - Present a realistic workplace situation relevant to {role}
-- The scenario should have some complexity or trade-off to reason through
 - 2-3 sentences max
 Respond with ONLY the question.""",
 }
@@ -680,10 +741,155 @@ def ai_generate_question(role, interview_history=None, question_number=1, assess
     if result:
         return result.strip()
 
-    # Fallback
     role_fallbacks = INTERVIEW_FALLBACKS.get(role, INTERVIEW_FALLBACKS["software developer"])
     return role_fallbacks.get(round_type, f"Tell me about your experience with {role}.")
 
+
+# ─────────────────────────────────────────────
+# SIMULATION TASKS
+# ─────────────────────────────────────────────
+
+SIMULATION_TASKS = {
+    "software developer": {
+        "task_type_label":  "Code Review + Fix",
+        "task_type_class":  "type-debug",
+        "task_title":       "Bug Hunt: Fix a Broken REST API Service",
+        "task_context":     "You've just joined a startup as a software developer. Your team lead has flagged a production bug — the user registration endpoint is failing silently. Users report they can register but their data never appears in the database.",
+        "task_background":  "The app is a Python Flask REST API with SQLite. It has been live for 3 months. The bug was introduced in the last deployment when a junior developer refactored the database layer.",
+        "task_your_role":   "You are the on-call developer. You must identify the bug, fix it, write a test for it, and document what went wrong.",
+        "task_constraints": "No external libraries beyond Flask and SQLite. Fix must be backward-compatible. You cannot break existing endpoints.",
+        "task_parts": [
+            {"title": "Review the broken code below and identify ALL bugs", "detail": "List each bug you find with its line number, what it does wrong, and why it causes the silent failure.", "code": """@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    name = data['name']
+    email = data['email']
+    password = data['password']
+    
+    conn = sqlite3.connect('users.db')
+    conn.execute(
+        "INSERT INTO users VALUES (?, ?, ?)",
+        (name, email, password)
+    )
+    conn.close()   # Bug is here — what's missing?
+    
+    return jsonify({'message': 'User created'}), 200""", "code_lang": "python"},
+            {"title": "Write the corrected version of the function", "detail": "Rewrite the entire register() function with all bugs fixed. Add proper error handling, password hashing, and input validation.", "code": None, "code_lang": ""},
+            {"title": "Write a unit test for the fixed function", "detail": "Write a simple test that verifies: (a) a valid registration succeeds and (b) a duplicate email returns an error.", "code": None, "code_lang": ""},
+        ],
+        "task_deliverables": ["List every bug found with explanation", "Corrected register() function with proper error handling", "Password hashing using werkzeug or hashlib", "Unit test covering success and duplicate-email cases", "Brief explanation of what caused the silent failure"],
+        "task_scoring": "Scored on: bug identification accuracy (30%), fix correctness (40%), test quality (20%), explanation clarity (10%).",
+    },
+    "full stack developer": {
+        "task_type_label":  "System Design + Code",
+        "task_type_class":  "type-plan",
+        "task_title":       "Design & Build a Real-Time Notification System",
+        "task_context":     "You work at a mid-sized SaaS company. Product has requested a real-time notification bell for their web app. You have one sprint (5 days) to design and implement it.",
+        "task_background":  "Current stack: React frontend, Node.js/Express backend, PostgreSQL database. The app has 50,000 active users. Notifications should appear within 2 seconds of an event.",
+        "task_your_role":   "You are the sole full-stack developer on this feature. You must design the architecture, implement the backend API and frontend component, and consider scalability.",
+        "task_constraints": "No paid third-party notification services. Must work on mobile. Must handle 1,000 concurrent users without crashing.",
+        "task_parts": [
+            {"title": "Design the database schema for notifications", "detail": "Design a PostgreSQL table to store notifications. Consider: user targeting, read/unread state, notification types, timestamps, and soft deletion.", "code": None, "code_lang": ""},
+            {"title": "Design the backend API endpoints", "detail": "List all REST API endpoints needed. For each, specify: HTTP method, URL, request body, response format, and auth requirements.", "code": None, "code_lang": ""},
+            {"title": "Choose and justify a real-time delivery mechanism", "detail": "Compare WebSockets vs Server-Sent Events (SSE) vs Polling for this use case. Choose one and explain why.", "code": None, "code_lang": ""},
+            {"title": "Write the React notification bell component", "detail": "Write a functional React component that shows an unread count badge, connects to your real-time endpoint, marks notifications as read on click, and displays a dropdown list.", "code": None, "code_lang": ""},
+        ],
+        "task_deliverables": ["SQL schema with CREATE TABLE statements", "Complete API endpoint specification", "Real-time mechanism choice with comparison", "React NotificationBell component with hooks", "Brief note on handling 1,000 concurrent connections"],
+        "task_scoring": "Scored on: schema design (25%), API design (25%), real-time choice reasoning (20%), React component quality (30%).",
+    },
+    "web developer": {
+        "task_type_label":  "Build + Optimise",
+        "task_type_class":  "type-code",
+        "task_title":       "Build a Responsive Product Card with Accessibility",
+        "task_context":     "You're a web developer at an e-commerce agency. A client has sent you a Figma design for a product card component. You need to build it, make it fully responsive, and ensure it passes WCAG 2.1 AA accessibility standards.",
+        "task_background":  "The client sells electronics. Their site gets 60% mobile traffic. Their last audit failed on colour contrast, missing alt text, and keyboard navigation.",
+        "task_your_role":   "You are building this component in isolation. It must be self-contained HTML/CSS/JS with no external dependencies.",
+        "task_constraints": "No CSS frameworks. Pure HTML, CSS, JavaScript only. Must work on IE11 equivalent. Loading time under 50ms.",
+        "task_parts": [
+            {"title": "Write the complete HTML structure for the product card", "detail": "Include: product image, name, price, rating (stars), 'Add to Cart' button, and a 'Wishlist' toggle. Use semantic HTML5 and all required ARIA attributes.", "code": None, "code_lang": ""},
+            {"title": "Write the CSS for the card (responsive, no frameworks)", "detail": "Style the card to look professional. Must be responsive for mobile (320px) through desktop (1440px). Use CSS custom properties for colours. Ensure 4.5:1 contrast ratio.", "code": None, "code_lang": ""},
+            {"title": "Identify and fix all accessibility issues in this snippet", "detail": "List every WCAG failure below and provide the corrected HTML.", "code": """<div class="product" onclick="addToCart()">
+  <img src="phone.jpg">
+  <div class="name" style="color: #aaa">iPhone 15</div>
+  <div class="price">₹79,999</div>
+  <div class="btn" onclick="addToCart()">Buy</div>
+  <span class="heart" onclick="wishlist()">♥</span>
+</div>""", "code_lang": "html"},
+        ],
+        "task_deliverables": ["Complete semantic HTML with all ARIA attributes", "Responsive CSS using Flexbox and CSS custom properties", "List of all accessibility violations found with fixes", "Explanation of how keyboard navigation works in your component"],
+        "task_scoring": "Scored on: HTML semantics (25%), CSS quality & responsiveness (30%), accessibility fixes (30%), keyboard nav explanation (15%).",
+    },
+    "data analyst": {
+        "task_type_label":  "Data Analysis",
+        "task_type_class":  "type-data",
+        "task_title":       "Investigate a Sales Drop: Root Cause Analysis",
+        "task_context":     "You work as a data analyst at an online retailer. Revenue dropped 23% last month compared to the same month last year. Your job: find out why.",
+        "task_background":  "The company sells across 4 categories: Electronics, Clothing, Home & Garden, Sports across 3 regions: North, South, West. Last month there was a website redesign.",
+        "task_your_role":   "You have 2 hours before the board meeting. You must present: what happened, why it happened, and what to do next.",
+        "task_constraints": "You only have summary-level data. You must make logical inferences. You cannot request more data before the meeting.",
+        "task_parts": [
+            {"title": "Analyse this data table and find the root cause", "detail": "Study the numbers below carefully. Identify which category, region, or segment drove the decline and explain your reasoning.", "code": """Category      | This Month | Last Year | Change
+Electronics   |  ₹4.2L     |  ₹4.1L    | +2.4%
+Clothing      |  ₹1.8L     |  ₹3.9L    | -53.8%  ← 
+Home & Garden |  ₹2.1L     |  ₹2.0L    | +5.0%
+Sports        |  ₹0.9L     |  ₹0.8L    | +12.5%
+
+Region        | This Month | Last Year | Change
+North         |  ₹3.8L     |  ₹3.7L    | +2.7%
+South         |  ₹1.2L     |  ₹3.2L    | -62.5%  ←
+West          |  ₹4.0L     |  ₹3.9L    | +2.6%
+
+Loyalty Members:    Visits -5%,  Conversion -3%
+Non-Members:        Visits -8%,  Conversion -41%  ←
+Website Redesign:   Launched on the 3rd of last month""", "code_lang": "text"},
+            {"title": "Write the SQL query to verify your hypothesis", "detail": "Write SQL to extract the data you would need to confirm your root cause theory. Assume tables: orders(id, date, category, region, customer_id, revenue), customers(id, is_loyalty_member, signup_date).", "code": None, "code_lang": ""},
+            {"title": "Create your board presentation structure", "detail": "Outline a 5-slide deck for the board meeting. For each slide: write the title, the key message, and what chart/visual you'd use.", "code": None, "code_lang": ""},
+        ],
+        "task_deliverables": ["Root cause identification with data-backed reasoning", "SQL query to validate hypothesis", "3 actionable recommendations with expected impact", "5-slide board deck outline", "Alternative hypotheses"],
+        "task_scoring": "Scored on: analysis accuracy (35%), SQL correctness (25%), recommendations quality (25%), communication clarity (15%).",
+    },
+    "cyber security": {
+        "task_type_label":  "Incident Response",
+        "task_type_class":  "type-debug",
+        "task_title":       "Respond to a Live Security Breach",
+        "task_context":     "You are a security analyst at a fintech company. At 2:47 AM, your SIEM fires a P1 alert. The logs show unusual activity on the customer database server. You have 15 minutes to make a containment decision.",
+        "task_background":  "Company handles 200,000 customer payment records. Compliance requires breach notification within 72 hours. Downtime costs ₹50,000/minute.",
+        "task_your_role":   "You are the on-call security analyst. No one else is awake. You must triage, contain, investigate, and begin the incident report.",
+        "task_constraints": "You cannot take down the server without VP approval. You have read-only access to logs. You can block IPs at the firewall level.",
+        "task_parts": [
+            {"title": "Triage these log entries — what's happening?", "detail": "Analyse the logs below. Identify the attack type, attacker behaviour, and what data may have been accessed.", "code": """02:31:14 | IP: 185.220.101.47 | GET /api/users?id=1 | 200
+02:31:15 | IP: 185.220.101.47 | GET /api/users?id=2 | 200
+[... 847 similar requests in 4 minutes ...]
+02:35:23 | IP: 185.220.101.47 | GET /api/users?id=1' OR '1'='1 | 500
+02:35:24 | IP: 185.220.101.47 | GET /api/users?id=1 UNION SELECT * FROM users-- | 200
+02:35:25 | DB  | QUERY: SELECT * FROM users WHERE id=1 UNION SELECT * FROM users--
+02:35:25 | DB  | Rows returned: 200000
+02:47:01 | SIEM| ALERT P1: Bulk data exfiltration detected (200K rows, 185.220.101.47)""", "code_lang": "text"},
+            {"title": "Write your immediate containment actions (prioritised list)", "detail": "List exactly what you do in the next 15 minutes. For each action: what you do, why, and what risk it carries.", "code": None, "code_lang": ""},
+            {"title": "Write the vulnerable API endpoint and its secure fix", "detail": "Based on the logs, write what the vulnerable code probably looks like, then write the secure version using parameterised queries.", "code": None, "code_lang": ""},
+            {"title": "Begin the incident report", "detail": "Write the first section of a formal incident report: Timeline, Attack Type, Data Affected, Immediate Actions Taken, and Regulatory Notification requirements.", "code": None, "code_lang": ""},
+        ],
+        "task_deliverables": ["Attack identification: type, technique, severity", "Prioritised containment action list with reasoning", "Vulnerable code and secure parameterised fix", "Partial incident report", "Long-term remediation recommendations (minimum 3)"],
+        "task_scoring": "Scored on: attack identification (25%), containment decisions (30%), code fix correctness (25%), incident report quality (20%).",
+    },
+    "ui/ux designer": {
+        "task_type_label":  "UX Redesign",
+        "task_type_class":  "type-design",
+        "task_title":       "Redesign a Failing Checkout Flow",
+        "task_context":     "You are a UX designer at an e-commerce company. The checkout page has a 71% abandonment rate. User interviews revealed: 'too many steps', 'confusing', 'I don't trust it'. Your job: redesign it.",
+        "task_background":  "Current flow has 6 steps. Average completion time is 8 minutes. Mobile accounts for 70% of traffic. 40% of drop-offs happen at the Login step.",
+        "task_your_role":   "You are the sole UX designer. You must redesign the flow, justify every decision with UX principles, and present it to the stakeholders.",
+        "task_constraints": "Cannot remove login entirely. Must keep existing payment gateway UI. Must work for first-time and returning users. Achievable in one 2-week sprint.",
+        "task_parts": [
+            {"title": "Identify every UX problem in the current flow", "detail": "List every UX issue, mapping each to a specific UX principle it violates (e.g. Hick's Law, Fitts' Law, Nielsen's Heuristics). Explain why each causes abandonment.", "code": None, "code_lang": ""},
+            {"title": "Design your new checkout flow", "detail": "Describe each screen in your redesigned flow. For each screen: name, purpose, key elements, micro-interactions, and what UX principle guides the design. Aim to reduce to 3 steps or fewer.", "code": None, "code_lang": ""},
+            {"title": "Design the Login step to reduce 40% drop-off", "detail": "Describe in detail how you'd redesign this specific step. Include: layout, copy, social login placement, guest checkout option, trust signals, and error states.", "code": None, "code_lang": ""},
+            {"title": "Define your success metrics and test plan", "detail": "Define 3 KPIs with target values, describe how you'd A/B test it, and list 5 usability test tasks you'd give to participants.", "code": None, "code_lang": ""},
+        ],
+        "task_deliverables": ["Problem list with UX principle violations mapped", "New flow: screen-by-screen description (3 steps or fewer)", "Detailed login step redesign with all states", "3 KPIs with targets and measurement method", "A/B test plan and usability test tasks"],
+        "task_scoring": "Scored on: problem identification depth (25%), redesign logic (35%), login redesign detail (25%), test plan quality (15%).",
+    },
+}
 
 
 # ─────────────────────────────────────────────
@@ -692,16 +898,17 @@ def ai_generate_question(role, interview_history=None, question_number=1, assess
 
 app = Flask(__name__)
 from flask_session import Session
-import tempfile
 
-app.config["SESSION_TYPE"]             = "filesystem"
-import os
-app.config["SESSION_FILE_DIR"]          = os.path.join(os.path.dirname(__file__), "flask_sessions")
-app.config["SESSION_FILE_THRESHOLD"]    = 100
-app.config["SESSION_PERMANENT"]         = False
-app.config["SESSION_COOKIE_SAMESITE"]   = "Lax"
+app.config["SESSION_TYPE"]           = "filesystem"
+app.config["SESSION_FILE_DIR"]       = os.path.join(os.path.dirname(__file__), "flask_sessions")
+app.config["SESSION_FILE_THRESHOLD"] = 100
+app.config["SESSION_PERMANENT"]      = False
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 Session(app)
 app.secret_key = os.environ.get("SECRET_KEY", "career_ai_secret_change_in_prod")
+
+ADMIN_EMAIL    = os.environ.get("ADMIN_EMAIL", "admin@skillnova.ai")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
 
 
 def login_required(f):
@@ -709,6 +916,15 @@ def login_required(f):
     def decorated(*args, **kwargs):
         if "user_id" not in session:
             return redirect("/")
+        return f(*args, **kwargs)
+    return decorated
+
+
+def admin_required(f):
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("is_admin"):
+            return redirect("/admin/login")
         return f(*args, **kwargs)
     return decorated
 
@@ -725,18 +941,23 @@ def get_db():
 
 def create_tables():
     os.makedirs("uploads", exist_ok=True)
+    os.makedirs("flask_sessions", exist_ok=True)
     conn   = get_db()
     cursor = conn.cursor()
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, password TEXT NOT NULL
+        name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, password TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )""")
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS results (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL, role TEXT, overall REAL,
         rating TEXT, job_ready TEXT, summary TEXT,
+        mcq_score REAL DEFAULT 0,
+        interview_score REAL DEFAULT 0,
+        simulation_score REAL DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
     )""")
@@ -786,6 +1007,91 @@ def register():
 def logout():
     session.clear()
     return redirect("/")
+
+
+# ─────────────────────────────────────────────
+# ADMIN
+# ─────────────────────────────────────────────
+
+@app.route("/admin/login", methods=["GET","POST"])
+def admin_login():
+    if request.method == "POST":
+        email    = request.form["email"].strip()
+        password = request.form["password"]
+        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+            session["is_admin"]   = True
+            session["admin_name"] = "Admin"
+            return redirect("/admin/dashboard")
+        flash("Invalid admin credentials.", "error")
+    return render_template("admin_login.html")
+
+
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("is_admin", None)
+    session.pop("admin_name", None)
+    return redirect("/admin/login")
+
+
+@app.route("/admin/dashboard")
+@admin_required
+def admin_dashboard():
+    conn = get_db()
+
+    total_users = conn.execute("SELECT COUNT(*) as c FROM users").fetchone()["c"]
+    total_results = conn.execute("SELECT COUNT(*) as c FROM results").fetchone()["c"]
+
+    users = conn.execute("""
+        SELECT u.id, u.name, u.email, u.created_at,
+               COUNT(r.id) as attempt_count,
+               MAX(r.overall) as best_score,
+               MAX(r.created_at) as last_active
+        FROM users u
+        LEFT JOIN results r ON r.user_id = u.id
+        GROUP BY u.id
+        ORDER BY u.created_at DESC
+    """).fetchall()
+
+    role_stats = conn.execute("""
+        SELECT role, COUNT(*) as count, AVG(overall) as avg_score
+        FROM results
+        WHERE role IS NOT NULL
+        GROUP BY role
+        ORDER BY count DESC
+    """).fetchall()
+
+    recent_results = conn.execute("""
+        SELECT r.*, u.name as user_name
+        FROM results r
+        JOIN users u ON u.id = r.user_id
+        ORDER BY r.created_at DESC
+        LIMIT 20
+    """).fetchall()
+
+    conn.close()
+
+    return render_template("admin_dashboard.html",
+        total_users=total_users,
+        total_results=total_results,
+        users=users,
+        role_stats=role_stats,
+        recent_results=recent_results,
+    )
+
+
+@app.route("/admin/user/<int:user_id>")
+@admin_required
+def admin_user_detail(user_id):
+    conn = get_db()
+    user = conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+    results = conn.execute(
+        "SELECT * FROM results WHERE user_id=? ORDER BY created_at DESC",
+        (user_id,)
+    ).fetchall()
+    conn.close()
+    if not user:
+        return redirect("/admin/dashboard")
+    return render_template("admin_user_detail.html", user=user, results=results)
 
 
 # ─────────────────────────────────────────────
@@ -854,17 +1160,49 @@ def career():
         if role not in ROLES:
             flash("Please select a valid career.", "error")
             return redirect("/career")
-
-        session["role"]              = role
-        session["interview_history"] = []
-        session["interview_round"]   = 1
-        session["current_question"]  = None
-        session["assessment_data"]   = None
-        session["mcq_questions"]     = None
-
-        return redirect("/assessment")
-
+        session["role"] = role
+        # Show mode selection — let user pick how to proceed
+        return redirect("/mode_select")
     return render_template("career.html", roles=ROLES)
+
+
+# ─────────────────────────────────────────────
+# MODE SELECTION — NEW: pick test / interview / simulation / guided
+# ─────────────────────────────────────────────
+
+@app.route("/mode_select")
+@login_required
+def mode_select():
+    if "role" not in session:
+        return redirect("/career")
+    role = session["role"]
+    return render_template("mode_select.html", role=role)
+
+
+@app.route("/start_mode", methods=["POST"])
+@login_required
+def start_mode():
+    mode = request.form.get("mode", "guided")
+    role = session.get("role", "")
+
+    # Reset all session data for this run
+    session["interview_history"] = []
+    session["interview_round"]   = 1
+    session["current_question"]  = None
+    session["assessment_data"]   = None
+    session["mcq_questions"]     = None
+    session["simulation_score"]  = None
+    session["simulation_feedback"] = None
+    session["simulation_task_obj"] = None
+
+    if mode == "assessment":
+        return redirect("/assessment")
+    elif mode == "interview":
+        return redirect("/interview")
+    elif mode == "simulation":
+        return redirect("/simulation")
+    else:  # guided
+        return redirect("/assessment")
 
 
 # ─────────────────────────────────────────────
@@ -880,7 +1218,6 @@ def assessment():
     role = session["role"]
 
     if request.method == "POST":
-        # Parse answers
         def parse_answers(key):
             raw = request.form.get(key, "{}")
             try:    return json.loads(raw)
@@ -898,17 +1235,15 @@ def assessment():
 
         questions = session.get("mcq_questions", {})
 
-        # Score each level
         score_l1 = score_mcq_level(ans_l1, questions.get("l1", []), time_l1)
         score_l2 = score_mcq_level(ans_l2, questions.get("l2", []), time_l2)
         score_l3 = score_mcq_level(ans_l3, questions.get("l3", []), time_l3)
 
-        # Score descriptive
         desc_results = []
         desc_qs      = questions.get("desc", [])
         for i, q in enumerate(desc_qs):
-            ans     = ans_desc.get(str(i), "")
-            sc, fb  = ai_score_descriptive(role, q.get("question",""), ans)
+            ans    = ans_desc.get(str(i), "")
+            sc, fb = ai_score_descriptive(role, q.get("question",""), ans)
             desc_results.append({"question": q.get("question",""), "answer": ans, "score": sc, "feedback": fb})
 
         desc_avg = round(sum(r["score"] for r in desc_results) / len(desc_results), 1) if desc_results else 5
@@ -925,7 +1260,6 @@ def assessment():
         session["assessment_data"] = assessment_data
         return redirect("/assessment_result")
 
-    # GET — generate questions
     questions = session.get("mcq_questions")
     if not questions:
         questions = {
@@ -946,10 +1280,6 @@ def assessment():
     )
 
 
-# ─────────────────────────────────────────────
-# REVISION NOTES ENDPOINT (AJAX)
-# ─────────────────────────────────────────────
-
 @app.route("/get_revision_notes", methods=["POST"])
 @login_required
 def get_revision_notes():
@@ -961,10 +1291,6 @@ def get_revision_notes():
     notes   = ai_revision_notes(role, level, correct, total)
     return jsonify({"notes": notes})
 
-
-# ─────────────────────────────────────────────
-# ASSESSMENT RESULT
-# ─────────────────────────────────────────────
 
 @app.route("/assessment_result")
 @login_required
@@ -985,6 +1311,7 @@ def assessment_result():
         desc_avg=data.get("desc_avg", 0),
         overall=data.get("overall_score", 0),
     )
+
 
 # ─────────────────────────────────────────────
 # INTERVIEW
@@ -1055,305 +1382,9 @@ def interview():
     )
 
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 1. REAL-WORLD SIMULATION TASKS  (replaces ai_generate_simulation)
-#    Add this dictionary above the simulation route
-# ─────────────────────────────────────────────────────────────────────────────
-
-SIMULATION_TASKS = {
-    "software developer": {
-        "task_type_label":  "Code Review + Fix",
-        "task_type_class":  "type-debug",
-        "task_title":       "Bug Hunt: Fix a Broken REST API Service",
-        "task_context":     "You've just joined a startup as a software developer. Your team lead has flagged a production bug — the user registration endpoint is failing silently. Users report they can register but their data never appears in the database.",
-        "task_background":  "The app is a Python Flask REST API with SQLite. It has been live for 3 months. The bug was introduced in the last deployment when a junior developer refactored the database layer.",
-        "task_your_role":   "You are the on-call developer. You must identify the bug, fix it, write a test for it, and document what went wrong.",
-        "task_constraints": "No external libraries beyond Flask and SQLite. Fix must be backward-compatible. You cannot break existing endpoints.",
-        "task_parts": [
-            {
-                "title": "Review the broken code below and identify ALL bugs",
-                "detail": "List each bug you find with its line number, what it does wrong, and why it causes the silent failure.",
-                "code": """@app.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    name = data['name']
-    email = data['email']
-    password = data['password']
-    
-    conn = sqlite3.connect('users.db')
-    conn.execute(
-        "INSERT INTO users VALUES (?, ?, ?)",
-        (name, email, password)
-    )
-    conn.close()   # Bug is here — what's missing?
-    
-    return jsonify({'message': 'User created'}), 200""",
-                "code_lang": "python",
-            },
-            {
-                "title": "Write the corrected version of the function",
-                "detail": "Rewrite the entire register() function with all bugs fixed. Add proper error handling, password hashing, and input validation.",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Write a unit test for the fixed function",
-                "detail": "Write a simple test that verifies: (a) a valid registration succeeds and (b) a duplicate email returns an error.",
-                "code": None,
-                "code_lang": "",
-            },
-        ],
-        "task_deliverables": [
-            "List every bug found with explanation",
-            "Corrected register() function with proper error handling",
-            "Password hashing using werkzeug or hashlib",
-            "Unit test covering success and duplicate-email cases",
-            "Brief explanation of what caused the silent failure",
-        ],
-        "task_scoring": "Scored on: bug identification accuracy (30%), fix correctness (40%), test quality (20%), explanation clarity (10%).",
-    },
-
-    "full stack developer": {
-        "task_type_label":  "System Design + Code",
-        "task_type_class":  "type-plan",
-        "task_title":       "Design & Build a Real-Time Notification System",
-        "task_context":     "You work at a mid-sized SaaS company. Product has requested a real-time notification bell (like LinkedIn's) for their web app. You have one sprint (5 days) to design and implement it.",
-        "task_background":  "Current stack: React frontend, Node.js/Express backend, PostgreSQL database. The app has 50,000 active users. Notifications should appear within 2 seconds of an event.",
-        "task_your_role":   "You are the sole full-stack developer on this feature. You must design the architecture, implement the backend API and frontend component, and consider scalability.",
-        "task_constraints": "No paid third-party notification services. Must work on mobile. Must handle 1,000 concurrent users without crashing.",
-        "task_parts": [
-            {
-                "title": "Design the database schema for notifications",
-                "detail": "Design a PostgreSQL table (or tables) to store notifications. Consider: user targeting, read/unread state, notification types, timestamps, and soft deletion.",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Design the backend API endpoints",
-                "detail": "List all REST API endpoints needed. For each, specify: HTTP method, URL, request body, response format, and auth requirements.",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Choose and justify a real-time delivery mechanism",
-                "detail": "Compare WebSockets vs Server-Sent Events (SSE) vs Polling for this use case. Choose one and explain why it fits best given the constraints.",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Write the React notification bell component",
-                "detail": "Write a functional React component that: shows an unread count badge, connects to your chosen real-time endpoint, marks notifications as read on click, and displays a dropdown list.",
-                "code": None,
-                "code_lang": "",
-            },
-        ],
-        "task_deliverables": [
-            "SQL schema with CREATE TABLE statements",
-            "Complete API endpoint specification",
-            "Real-time mechanism choice with comparison and justification",
-            "React NotificationBell component with hooks",
-            "Brief note on how you'd handle 1,000 concurrent connections",
-        ],
-        "task_scoring": "Scored on: schema design (25%), API design (25%), real-time choice reasoning (20%), React component quality (30%).",
-    },
-
-    "web developer": {
-        "task_type_label":  "Build + Optimise",
-        "task_type_class":  "type-code",
-        "task_title":       "Build a Responsive Product Card with Accessibility",
-        "task_context":     "You're a web developer at an e-commerce agency. A client has sent you a Figma design for a product card component. You need to build it, make it fully responsive, and ensure it passes WCAG 2.1 AA accessibility standards.",
-        "task_background":  "The client sells electronics. Their site gets 60% mobile traffic. Their last audit failed on colour contrast, missing alt text, and keyboard navigation. The new component must fix all of this.",
-        "task_your_role":   "You are building this component in isolation. It will be dropped into multiple pages. It must be self-contained HTML/CSS/JS with no external dependencies.",
-        "task_constraints": "No CSS frameworks (no Bootstrap/Tailwind). Pure HTML, CSS, JavaScript only. Must work on IE11 equivalent (no CSS Grid, use Flexbox). Loading time under 50ms.",
-        "task_parts": [
-            {
-                "title": "Write the complete HTML structure for the product card",
-                "detail": "Include: product image, name, price, rating (stars), 'Add to Cart' button, and a 'Wishlist' toggle. Use semantic HTML5 elements and all required ARIA attributes.",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Write the CSS for the card (responsive, no frameworks)",
-                "detail": "Style the card to look professional. Must be responsive for mobile (320px) through desktop (1440px). Use CSS custom properties for colours. Ensure 4.5:1 contrast ratio.",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Identify and fix all accessibility issues in this snippet",
-                "detail": "List every WCAG failure below and provide the corrected HTML.",
-                "code": """<div class="product" onclick="addToCart()">
-  <img src="phone.jpg">
-  <div class="name" style="color: #aaa">iPhone 15</div>
-  <div class="price">₹79,999</div>
-  <div class="btn" onclick="addToCart()">Buy</div>
-  <span class="heart" onclick="wishlist()">♥</span>
-</div>""",
-                "code_lang": "html",
-            },
-        ],
-        "task_deliverables": [
-            "Complete semantic HTML with all ARIA attributes",
-            "Responsive CSS using Flexbox and CSS custom properties",
-            "List of all accessibility violations found with fixes",
-            "Explanation of how keyboard navigation works in your component",
-        ],
-        "task_scoring": "Scored on: HTML semantics (25%), CSS quality & responsiveness (30%), accessibility fixes (30%), keyboard nav explanation (15%).",
-    },
-
-    "data analyst": {
-        "task_type_label":  "Data Analysis",
-        "task_type_class":  "type-data",
-        "task_title":       "Investigate a Sales Drop: Root Cause Analysis",
-        "task_context":     "You work as a data analyst at an online retailer. The head of sales called an urgent meeting — revenue dropped 23% last month compared to the same month last year. Your job: find out why.",
-        "task_background":  "The company sells across 4 categories: Electronics, Clothing, Home & Garden, Sports. They operate in 3 regions: North, South, West. They have a loyalty programme. Last month there was a website redesign.",
-        "task_your_role":   "You have 2 hours before the board meeting. You must present: what happened, why it happened, and what to do next.",
-        "task_constraints": "You only have summary-level data (no raw rows). You must make logical inferences. You cannot request more data before the meeting.",
-        "task_parts": [
-            {
-                "title": "Analyse this data table and find the root cause",
-                "detail": "Study the numbers below carefully. Identify which category, region, or segment drove the decline and explain your reasoning.",
-                "code": """Category      | This Month | Last Year | Change
-Electronics   |  ₹4.2L     |  ₹4.1L    | +2.4%
-Clothing      |  ₹1.8L     |  ₹3.9L    | -53.8%  ← 
-Home & Garden |  ₹2.1L     |  ₹2.0L    | +5.0%
-Sports        |  ₹0.9L     |  ₹0.8L    | +12.5%
-
-Region        | This Month | Last Year | Change
-North         |  ₹3.8L     |  ₹3.7L    | +2.7%
-South         |  ₹1.2L     |  ₹3.2L    | -62.5%  ←
-West          |  ₹4.0L     |  ₹3.9L    | +2.6%
-
-Loyalty Members:    Visits -5%,  Conversion -3%
-Non-Members:        Visits -8%,  Conversion -41%  ←
-Website Redesign:   Launched on the 3rd of last month""",
-                "code_lang": "text",
-            },
-            {
-                "title": "Write the SQL query to verify your hypothesis",
-                "detail": "Write SQL to extract the data you would need to confirm your root cause theory. Assume tables: orders(id, date, category, region, customer_id, revenue), customers(id, is_loyalty_member, signup_date).",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Create your board presentation structure",
-                "detail": "Outline a 5-slide deck for the board meeting. For each slide: write the title, the key message, and what chart/visual you'd use.",
-                "code": None,
-                "code_lang": "",
-            },
-        ],
-        "task_deliverables": [
-            "Root cause identification with data-backed reasoning",
-            "SQL query to validate hypothesis",
-            "3 actionable recommendations with expected impact",
-            "5-slide board deck outline",
-            "Risk: what else could explain the drop (alternative hypotheses)",
-        ],
-        "task_scoring": "Scored on: analysis accuracy (35%), SQL correctness (25%), recommendations quality (25%), communication clarity (15%).",
-    },
-
-    "cyber security": {
-        "task_type_label":  "Incident Response",
-        "task_type_class":  "type-debug",
-        "task_title":       "Respond to a Live Security Breach",
-        "task_context":     "You are a security analyst at a fintech company. At 2:47 AM, your SIEM fires a P1 alert. The logs show unusual activity on the customer database server. Your incident response plan says you have 15 minutes to make a containment decision.",
-        "task_background":  "Company handles 200,000 customer payment records. Compliance requires breach notification within 72 hours. The affected server runs the customer-facing API. Downtime costs ₹50,000/minute.",
-        "task_your_role":   "You are the on-call security analyst. No one else is awake. You must triage, contain, investigate, and begin the incident report.",
-        "task_constraints": "You cannot take down the server without VP approval (who is unreachable). You have read-only access to logs. You can block IPs at the firewall level.",
-        "task_parts": [
-            {
-                "title": "Triage these log entries — what's happening?",
-                "detail": "Analyse the logs below. Identify the attack type, attacker behaviour, and what data may have been accessed.",
-                "code": """02:31:14 | IP: 185.220.101.47 | GET /api/users?id=1 | 200
-02:31:15 | IP: 185.220.101.47 | GET /api/users?id=2 | 200
-02:31:15 | IP: 185.220.101.47 | GET /api/users?id=3 | 200
-[... 847 similar requests in 4 minutes ...]
-02:35:22 | IP: 185.220.101.47 | GET /api/users?id=848 | 200
-02:35:23 | IP: 185.220.101.47 | GET /api/users?id=1' OR '1'='1 | 500
-02:35:24 | IP: 185.220.101.47 | GET /api/users?id=1 UNION SELECT * FROM users-- | 200
-02:35:25 | DB  | QUERY: SELECT * FROM users WHERE id=1 UNION SELECT * FROM users--
-02:35:25 | DB  | Rows returned: 200000
-02:47:01 | SIEM| ALERT P1: Bulk data exfiltration detected (200K rows, 185.220.101.47)""",
-                "code_lang": "text",
-            },
-            {
-                "title": "Write your immediate containment actions (prioritised list)",
-                "detail": "List exactly what you do in the next 15 minutes. For each action: what you do, why, and what risk it carries.",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Write the vulnerable API endpoint and its secure fix",
-                "detail": "Based on the logs, write what the vulnerable code probably looks like, then write the secure version using parameterised queries.",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Begin the incident report",
-                "detail": "Write the first section of a formal incident report: Timeline, Attack Type, Data Affected, Immediate Actions Taken, and Regulatory Notification requirements.",
-                "code": None,
-                "code_lang": "",
-            },
-        ],
-        "task_deliverables": [
-            "Attack identification: type, technique (OWASP category), severity",
-            "Prioritised containment action list with reasoning",
-            "Vulnerable code and secure parameterised fix",
-            "Partial incident report (timeline + impact assessment)",
-            "Long-term remediation recommendations (minimum 3)",
-        ],
-        "task_scoring": "Scored on: attack identification (25%), containment decisions (30%), code fix correctness (25%), incident report quality (20%).",
-    },
-
-    "ui/ux designer": {
-        "task_type_label":  "UX Redesign",
-        "task_type_class":  "type-design",
-        "task_title":       "Redesign a Failing Checkout Flow",
-        "task_context":     "You are a UX designer at an e-commerce company. The checkout page has a 71% abandonment rate — one of the worst in the industry. User interviews revealed: 'too many steps', 'confusing', 'I don't trust it'. Your job: redesign it.",
-        "task_background":  "Current flow has 6 steps: Cart → Login/Register → Shipping → Payment → Review → Confirmation. Average completion time is 8 minutes. Mobile accounts for 70% of traffic. 40% of drop-offs happen at the Login step.",
-        "task_your_role":   "You are the sole UX designer. You must redesign the flow, justify every decision with UX principles, and present it to the stakeholders.",
-        "task_constraints": "Cannot remove login entirely (business requirement). Must keep existing payment gateway UI. Must work for first-time and returning users. Redesign must be achievable in one 2-week sprint.",
-        "task_parts": [
-            {
-                "title": "Identify every UX problem in the current flow",
-                "detail": "List every UX issue, mapping each to a specific UX principle it violates (e.g. Hick's Law, Fitts' Law, Miller's Law, Nielsen's Heuristics). Explain why each causes abandonment.",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Design your new checkout flow",
-                "detail": "Describe each screen in your redesigned flow. For each screen: name, purpose, key elements, micro-interactions, and what UX principle guides the design. Aim to reduce to 3 steps or fewer.",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Design the Login step to reduce 40% drop-off",
-                "detail": "This is the highest abandonment point. Describe in detail how you'd redesign this specific step. Include: layout, copy, social login placement, guest checkout option, trust signals, and error states.",
-                "code": None,
-                "code_lang": "",
-            },
-            {
-                "title": "Define your success metrics and test plan",
-                "detail": "How will you know if your redesign worked? Define 3 KPIs with target values, describe how you'd A/B test it, and list 5 usability test tasks you'd give to participants.",
-                "code": None,
-                "code_lang": "",
-            },
-        ],
-        "task_deliverables": [
-            "Problem list with UX principle violations mapped",
-            "New flow: screen-by-screen description (3 steps or fewer)",
-            "Detailed login step redesign with all states",
-            "3 KPIs with targets and measurement method",
-            "A/B test plan and usability test tasks",
-        ],
-        "task_scoring": "Scored on: problem identification depth (25%), redesign logic (35%), login redesign detail (25%), test plan quality (15%).",
-    },
-}
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 2. UPDATED SIMULATION ROUTE  (replaces the existing /simulation route)
-# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# SIMULATION
+# ─────────────────────────────────────────────
 
 @app.route("/simulation", methods=["GET", "POST"])
 @login_required
@@ -1361,10 +1392,7 @@ def simulation():
     if "role" not in session:
         return redirect("/career")
 
-    role            = session["role"]
-    history         = session.get("interview_history", [])
-    assessment_data = session.get("assessment_data", {})
-    assessment_score = assessment_data.get("overall_score", 50) if assessment_data else 50
+    role = session["role"]
 
     if request.method == "POST":
         answer   = request.form.get("answer", "").strip()
@@ -1376,26 +1404,28 @@ def simulation():
         session["simulation_answer"]   = answer
         return redirect("/result")
 
-    # Pick task for this role
     task = SIMULATION_TASKS.get(role, SIMULATION_TASKS["software developer"])
     session["simulation_task_obj"] = task
 
-    # Build parts list (Jinja2 needs dicts)
     return render_template(
         "simulation.html",
         role=role,
-        task_type_label  = task["task_type_label"],
-        task_type_class  = task["task_type_class"],
-        task_title       = task["task_title"],
-        task_context     = task["task_context"],
-        task_background  = task["task_background"],
-        task_your_role   = task["task_your_role"],
-        task_constraints = task["task_constraints"],
-        task_parts       = task["task_parts"],
-        task_deliverables= task["task_deliverables"],
-        task_scoring     = task["task_scoring"],
+        task_type_label   = task["task_type_label"],
+        task_type_class   = task["task_type_class"],
+        task_title        = task["task_title"],
+        task_context      = task["task_context"],
+        task_background   = task["task_background"],
+        task_your_role    = task["task_your_role"],
+        task_constraints  = task["task_constraints"],
+        task_parts        = task["task_parts"],
+        task_deliverables = task["task_deliverables"],
+        task_scoring      = task["task_scoring"],
     )
 
+
+# ─────────────────────────────────────────────
+# RESULT
+# ─────────────────────────────────────────────
 
 @app.route("/result")
 @login_required
@@ -1407,22 +1437,36 @@ def result():
     history          = session.get("interview_history",[])
     simulation_score = session.get("simulation_score", 5)
     sim_feedback     = session.get("simulation_feedback","")
-    simulation_task  = session.get("simulation_task","")
     assessment_data  = session.get("assessment_data", {"l1":{},"l2":{},"l3":{},"overall_score":0})
+
+    if simulation_score is None:
+        simulation_score = 5
 
     report = ai_generate_report(role, history, simulation_score, assessment_data)
 
+    # Save to DB
+    interview_avg = 0
+    if history:
+        scores = [qa.get("score", 5) for qa in history]
+        interview_avg = round(sum(scores) / len(scores), 1) if scores else 5
+
     conn = get_db()
     conn.execute(
-        "INSERT INTO results (user_id,role,overall,rating,job_ready,summary) VALUES (?,?,?,?,?,?)",
-        (session["user_id"], role, report["overall"], report["rating"], report["job_ready"], report["summary"])
+        """INSERT INTO results (user_id,role,overall,rating,job_ready,summary,
+           mcq_score,interview_score,simulation_score) VALUES (?,?,?,?,?,?,?,?,?)""",
+        (session["user_id"], role, report["overall"], report["rating"],
+         report["job_ready"], report["summary"],
+         assessment_data.get("overall_score", 0),
+         interview_avg, simulation_score)
     )
     conn.commit()
     conn.close()
 
-    return render_template("result.html", role=role, report=report, history=history,
-                           simulation_score=simulation_score, sim_feedback=sim_feedback,
-                           simulation_task=simulation_task, assessment_data=assessment_data)
+    return render_template("result.html",
+        role=role, report=report, history=history,
+        simulation_score=simulation_score, sim_feedback=sim_feedback,
+        assessment_data=assessment_data
+    )
 
 
 # ─────────────────────────────────────────────
