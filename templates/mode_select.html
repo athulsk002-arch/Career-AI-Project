@@ -260,8 +260,10 @@
 
     <!-- GUIDED — full path -->
     <form method="POST" action="/start_mode">
-        <input type="hidden" name="mode" value="guided">
+    <input type="hidden" name="mode" value="guided">
+    <button type="submit" style="all: unset; width: 100%; cursor: pointer;">
         <div class="mode-card guided">
+
             <div class="mode-icon">🚀</div>
             <span class="mode-badge badge-recommended">Recommended Path</span>
             <div class="mode-title">Full Career Readiness Journey <span class="time-tag">~45 min</span></div>
@@ -271,14 +273,15 @@
                 <div class="step-chip"><span class="num">2</span> Mock Interview</div>
                 <div class="step-chip"><span class="num">3</span> Job Simulation</div>
                 <div class="step-chip"><span class="num">4</span> Full Report</div>
-            </div>
-            <button type="submit" class="mode-btn btn-guided">Start Full Journey →</button>
+              <div class="mode-title">Start Full Journey</div>
         </div>
+    </button>
     </form>
 
     <!-- ASSESSMENT only -->
     <form method="POST" action="/start_mode">
-        <input type="hidden" name="mode" value="assessment">
+    <input type="hidden" name="mode" value="assessment">
+    <button type="submit" style="all: unset; width: 100%; cursor: pointer;">
         <div class="mode-card assessment">
             <div class="mode-icon">📝</div>
             <span class="mode-badge badge-test">Skill Test</span>
@@ -289,14 +292,15 @@
                 <div class="step-chip"><span class="num">2</span> Intermediate (10 Q)</div>
                 <div class="step-chip"><span class="num">3</span> Critical (5 Q)</div>
                 <div class="step-chip"><span class="num">4</span> Descriptive (3 Q)</div>
-            </div>
-            <button type="submit" class="mode-btn btn-assessment">Take Assessment →</button>
+            <div class="mode-title">Skill Assessment Only</div>
         </div>
+    </button>
     </form>
 
     <!-- INTERVIEW only -->
     <form method="POST" action="/start_mode">
-        <input type="hidden" name="mode" value="interview">
+    <input type="hidden" name="mode" value="interview">
+    <button type="submit" style="all: unset; width: 100%; cursor: pointer;">
         <div class="mode-card interview">
             <div class="mode-icon">🎤</div>
             <span class="mode-badge badge-interview">Mock Interview</span>
@@ -307,14 +311,15 @@
                 <div class="step-chip"><span class="num">2</span> Technical</div>
                 <div class="step-chip"><span class="num">3</span> Behavioural</div>
                 <div class="step-chip"><span class="num">4</span> Scenario</div>
-            </div>
-            <button type="submit" class="mode-btn btn-interview">Start Interview →</button>
+            <div class="mode-title">Start Interview</div>
         </div>
+    </button>
     </form>
 
     <!-- SIMULATION only -->
     <form method="POST" action="/start_mode">
-        <input type="hidden" name="mode" value="simulation">
+    <input type="hidden" name="mode" value="simulation">
+    <button type="submit" style="all: unset; width: 100%; cursor: pointer;">
         <div class="mode-card simulation">
             <div class="mode-icon">🏢</div>
             <span class="mode-badge badge-simulation">Job Simulation</span>
@@ -324,9 +329,9 @@
                 <div class="step-chip"><span class="num">1</span> Role-specific task</div>
                 <div class="step-chip"><span class="num">2</span> Timed environment</div>
                 <div class="step-chip"><span class="num">3</span> AI-scored result</div>
-            </div>
-            <button type="submit" class="mode-btn btn-simulation">Start Simulation →</button>
+            <div class="mode-title">Start Simulation</div>
         </div>
+    </button>
     </form>
 
 </div>
